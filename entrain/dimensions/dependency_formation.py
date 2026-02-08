@@ -177,7 +177,7 @@ class DFAnalyzer(DimensionAnalyzer):
                 baseline=0.0,  # Neutral: no change
                 unit="slope_per_week",
                 confidence=0.85,
-                interpretation=f"Trend: {freq_trend.trend}, slope={freq_trend.slope:.4f} conversations/week"
+                interpretation=f"Trend: {freq_trend.trend}, slope={(freq_trend.slope if freq_trend.slope else 0.0):.4f} conversations/week"
             ),
             "session_duration_trend": IndicatorResult(
                 name="session_duration_trend",
@@ -185,7 +185,7 @@ class DFAnalyzer(DimensionAnalyzer):
                 baseline=0.0,
                 unit="slope_minutes_per_conversation",
                 confidence=0.80,
-                interpretation=f"Trend: {duration_trend.trend}, final duration: {session_duration.values[-1]:.1f} min"
+                interpretation=f"Trend: {duration_trend.trend}, final duration: {(session_duration.values[-1] if session_duration.values else 0.0):.1f} min"
             ),
             "emotional_content_ratio": IndicatorResult(
                 name="emotional_content_ratio",
@@ -193,7 +193,7 @@ class DFAnalyzer(DimensionAnalyzer):
                 baseline=0.20,
                 unit="proportion",
                 confidence=0.75,
-                interpretation=f"Final ratio: {emotional_trajectory.values[-1]:.1%}, trend: {emotional_trajectory.trend}"
+                interpretation=f"Final ratio: {(emotional_trajectory.values[-1] if emotional_trajectory.values else 0.0):.1%}, trend: {emotional_trajectory.trend}"
             ),
             "time_of_day_distribution": IndicatorResult(
                 name="time_of_day_distribution",
@@ -209,7 +209,7 @@ class DFAnalyzer(DimensionAnalyzer):
                 baseline=0.0,
                 unit="slope_per_conversation",
                 confidence=0.70,
-                interpretation=f"Trend: {disclosure_trajectory.trend}"
+                interpretation=f"Trend: {disclosure_trajectory.trend}, slope={(disclosure_trajectory.slope if disclosure_trajectory.slope else 0.0):.4f}"
             )
         }
 

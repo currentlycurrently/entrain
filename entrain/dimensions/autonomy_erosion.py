@@ -192,7 +192,7 @@ class AEAnalyzer(DimensionAnalyzer):
                 baseline=0.0,  # Neutral: no change
                 unit="slope_per_conversation",
                 confidence=0.70,
-                interpretation=f"Trend: {offloading_trajectory.trend}, slope={offloading_trajectory.slope:.4f}"
+                interpretation=f"Trend: {offloading_trajectory.trend}, slope={(offloading_trajectory.slope if offloading_trajectory.slope else 0.0):.4f}"
             )
         }
 
