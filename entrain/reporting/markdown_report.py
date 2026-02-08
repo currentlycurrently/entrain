@@ -10,6 +10,12 @@ from pathlib import Path
 
 from entrain.models import EntrainReport, DimensionReport, IndicatorResult
 
+try:
+    from entrain.analysis.cross_dimensional import CrossDimensionalReport
+    CROSS_DIMENSIONAL_AVAILABLE = True
+except ImportError:
+    CROSS_DIMENSIONAL_AVAILABLE = False
+
 
 class MarkdownReportGenerator:
     """
@@ -41,6 +47,10 @@ class MarkdownReportGenerator:
         for code in sorted(report.dimensions.keys()):
             dimension_report = report.dimensions[code]
             sections.append(self._generate_dimension_section(dimension_report))
+
+        # Cross-dimensional analysis (if available)
+        if CROSS_DIMENSIONAL_AVAILABLE and hasattr(report, 'cross_dimensional_analysis'):
+            sections.append(self._generate_cross_dimensional_analysis(report.cross_dimensional_analysis))
 
         # Cross-dimensional observations
         if report.cross_dimensional:
@@ -128,6 +138,80 @@ class MarkdownReportGenerator:
             lines.append("")
             for citation in dimension_report.citations:
                 lines.append(f"- {citation}")
+
+        return "\n".join(lines)
+
+    def _generate_cross_dimensional_analysis(self, cross_dim_report) -> str:
+        """Generate cross-dimensional analysis section."""
+        lines = ["## Cross-Dimensional Analysis", ""]
+
+        # Risk Score
+        lines.append("### Overall Risk Assessment")
+        lines.append("")
+        risk_icon = {
+            "LOW": "🟢",
+            "MODERATE": "🟡",
+            "HIGH": "🟠",
+            "SEVERE": "🔴"
+        }
+        icon = risk_icon.get(cross_dim_report.risk_score.level, "⚪")
+        lines.append(f"**Risk Level:** {icon} **{cross_dim_report.risk_score.level}** ({cross_dim_report.risk_score.score:.0%})")
+        lines.append("")
+        lines.append(cross_dim_report.risk_score.interpretation)
+        lines.append("")
+
+        if cross_dim_report.risk_score.top_contributors:
+            lines.append("**Primary Concerns:**")
+            for dim in cross_dim_report.risk_score.top_contributors:
+                dim_name = self._get_dimension_name(dim)
+                lines.append(f"- {dim} ({dim_name})")
+            lines.append("")
+
+        # Patterns
+        if cross_dim_report.patterns:
+            lines.append("### Detected Patterns")
+            lines.append("")
+
+            for pattern in cross_dim_report.patterns:
+                severity_icon = risk_icon.get(pattern.severity, "⚪")
+                lines.append(f"#### {severity_icon} {pattern.pattern_id.replace('_', ' ').title()}")
+                lines.append("")
+                lines.append(f"**Severity:** {pattern.severity}")
+                lines.append("")
+                lines.append(f"**Description:** {pattern.description}")
+                lines.append("")
+                lines.append(f"**Dimensions Involved:** {', '.join(pattern.dimensions_involved)}")
+                lines.append("")
+                lines.append(f"**Recommendation:** {pattern.recommendation}")
+                lines.append("")
+
+        # Correlation Matrix (if available)
+        if cross_dim_report.correlation_matrix and not cross_dim_report.correlation_matrix.insufficient_data:
+            lines.append("### Correlation Matrix")
+            lines.append("")
+
+            strong_corrs = cross_dim_report.correlation_matrix.get_strong_correlations()
+
+            if strong_corrs:
+                lines.append("**Strong Correlations** (|r| > 0.7):")
+                lines.append("")
+                lines.append("| Dimension 1 | Dimension 2 | Correlation |")
+                lines.append("|-------------|-------------|-------------|")
+
+                for dim1, dim2, corr in strong_corrs:
+                    corr_str = f"{corr:+.3f}"
+                    lines.append(f"| {dim1} | {dim2} | {corr_str} |")
+
+                lines.append("")
+            else:
+                lines.append("*No strong correlations detected (all |r| < 0.7)*")
+                lines.append("")
+
+        # Summary
+        lines.append("### Summary")
+        lines.append("")
+        lines.append(cross_dim_report.summary)
+        lines.append("")
 
         return "\n".join(lines)
 

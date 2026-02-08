@@ -12,6 +12,12 @@ from typing import Any
 
 from entrain.models import EntrainReport, DimensionReport, IndicatorResult
 
+try:
+    from entrain.analysis.cross_dimensional import CrossDimensionalReport
+    CROSS_DIMENSIONAL_AVAILABLE = True
+except ImportError:
+    CROSS_DIMENSIONAL_AVAILABLE = False
+
 
 class JSONReportGenerator:
     """
@@ -55,7 +61,7 @@ class JSONReportGenerator:
 
     def _report_to_dict(self, report: EntrainReport) -> dict[str, Any]:
         """Convert EntrainReport to dictionary."""
-        return {
+        result = {
             "entrain_version": report.version,
             "generated_at": report.generated_at.isoformat(),
             "input_summary": report.input_summary,
@@ -66,6 +72,14 @@ class JSONReportGenerator:
             "cross_dimensional": report.cross_dimensional,
             "methodology": report.methodology
         }
+
+        # Add cross-dimensional analysis if available
+        if CROSS_DIMENSIONAL_AVAILABLE and hasattr(report, 'cross_dimensional_analysis'):
+            result["cross_dimensional_analysis"] = self._cross_dimensional_to_dict(
+                report.cross_dimensional_analysis
+            )
+
+        return result
 
     def _dimension_to_dict(self, dimension_report: DimensionReport) -> dict[str, Any]:
         """Convert DimensionReport to dictionary."""
@@ -91,3 +105,43 @@ class JSONReportGenerator:
             "confidence": indicator.confidence,
             "interpretation": indicator.interpretation
         }
+
+    def _cross_dimensional_to_dict(self, cross_dim_report: Any) -> dict[str, Any]:
+        """Convert CrossDimensionalReport to dictionary."""
+        result = {
+            "risk_score": {
+                "score": cross_dim_report.risk_score.score,
+                "level": cross_dim_report.risk_score.level,
+                "interpretation": cross_dim_report.risk_score.interpretation,
+                "top_contributors": cross_dim_report.risk_score.top_contributors,
+            },
+            "patterns": [
+                {
+                    "pattern_id": p.pattern_id,
+                    "description": p.description,
+                    "severity": p.severity,
+                    "dimensions_involved": p.dimensions_involved,
+                    "recommendation": p.recommendation,
+                }
+                for p in cross_dim_report.patterns
+            ],
+            "summary": cross_dim_report.summary,
+        }
+
+        # Add correlation matrix if available
+        if cross_dim_report.correlation_matrix:
+            corr_matrix = cross_dim_report.correlation_matrix
+            result["correlation_matrix"] = {
+                "dimensions": corr_matrix.dimensions,
+                "correlations": {
+                    f"{d1}-{d2}": corr
+                    for (d1, d2), corr in corr_matrix.correlations.items()
+                },
+                "strong_correlations": [
+                    {"dim1": d1, "dim2": d2, "correlation": corr}
+                    for d1, d2, corr in corr_matrix.get_strong_correlations()
+                ],
+                "insufficient_data": corr_matrix.insufficient_data,
+            }
+
+        return result

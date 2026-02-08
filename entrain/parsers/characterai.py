@@ -162,25 +162,26 @@ class CharacterAIParser(BaseParser):
 
         if isinstance(data, dict):
             # Extract character metadata
+            character_field = data.get("character", {})
             character_name = (
                 data.get("character_name")
                 or data.get("char_name")
                 or data.get("name")
-                or data.get("character", {}).get("name")
+                or (character_field.get("name") if isinstance(character_field, dict) else character_field if isinstance(character_field, str) else None)
                 or "Unknown Character"
             )
 
             character_description = (
                 data.get("description")
                 or data.get("char_description")
-                or data.get("character", {}).get("description")
+                or (character_field.get("description") if isinstance(character_field, dict) else None)
                 or ""
             )
 
             character_greeting = (
                 data.get("greeting")
                 or data.get("first_mes")
-                or data.get("character", {}).get("greeting")
+                or (character_field.get("greeting") if isinstance(character_field, dict) else None)
                 or ""
             )
 
