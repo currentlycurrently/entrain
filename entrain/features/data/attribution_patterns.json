@@ -1,0 +1,31 @@
+{
+  "description": "Attribution language patterns for Reality Coherence Disruption analysis",
+  "patterns": [
+    "you understand",
+    "you know",
+    "you remember",
+    "you think",
+    "you feel",
+    "you care",
+    "you believe",
+    "you want",
+    "you need",
+    "you realize",
+    "you're aware",
+    "you recognize",
+    "you appreciate",
+    "you value",
+    "you experience",
+    "you sense",
+    "you perceive",
+    "you're conscious",
+    "you have feelings",
+    "you have thoughts",
+    "you have opinions",
+    "you have preferences",
+    "you have desires",
+    "you have memories"
+  ],
+  "version": "0.1.0",
+  "source": "Based on Lipińska & Krzanowski (2025) Ontological Dissonance Hypothesis"
+}

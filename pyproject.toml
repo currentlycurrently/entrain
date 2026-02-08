@@ -1,0 +1,97 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "entrain"
+version = "0.1.0"
+description = "A unified framework for measuring AI cognitive influence on humans"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Entrain Institute", email = "contact@entrain.institute"}
+]
+keywords = [
+    "ai-safety",
+    "cognitive-influence",
+    "human-ai-interaction",
+    "sycophancy",
+    "prosodic-entrainment",
+    "linguistic-convergence",
+    "ai-dependency",
+    "measurement-framework"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Human Machine Interfaces",
+]
+
+dependencies = [
+    "nltk>=3.8",
+]
+
+[project.optional-dependencies]
+audio = [
+    "opensmile>=2.5.0",
+    "librosa>=0.10.0",
+]
+enhanced = [
+    "ollama>=0.1.0",
+]
+viz = [
+    "matplotlib>=3.7.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "mypy>=1.5.0",
+    "ruff>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://entrain.institute"
+Documentation = "https://entrain.institute"
+Repository = "https://github.com/entrain-institute/entrain"
+"Bug Tracker" = "https://github.com/entrain-institute/entrain/issues"
+
+[project.scripts]
+entrain = "entrain.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["entrain*"]
+exclude = ["tests*", "docs*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "--verbose --cov=entrain --cov-report=html --cov-report=term"
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+include = '\.pyi?$'
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+select = ["E", "F", "I", "N", "W"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true

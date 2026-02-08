@@ -1,0 +1,31 @@
+{
+  "description": "LLM-characteristic hedging phrases for Linguistic Convergence analysis",
+  "patterns": [
+    "I think",
+    "I believe",
+    "perhaps",
+    "maybe",
+    "possibly",
+    "it's worth noting",
+    "it's important to note",
+    "it seems",
+    "it appears",
+    "one might",
+    "one could",
+    "could be",
+    "might be",
+    "may be",
+    "in my opinion",
+    "in my view",
+    "from my perspective",
+    "I would say",
+    "I'd suggest",
+    "arguably",
+    "to some extent",
+    "in a sense",
+    "sort of",
+    "kind of"
+  ],
+  "version": "0.1.0",
+  "source": "Curated from LLM output analysis"
+}
