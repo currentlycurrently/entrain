@@ -21,7 +21,7 @@ from entrain.dimensions import (
     RCDAnalyzer,
     DFAnalyzer,
 )
-from entrain.reporting import JSONReportGenerator, MarkdownReportGenerator
+from entrain.reporting import JSONReportGenerator, MarkdownReportGenerator, CSVExporter
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -89,7 +89,7 @@ def create_parser() -> argparse.ArgumentParser:
     )
     report_parser.add_argument(
         "--format",
-        choices=["markdown", "json"],
+        choices=["markdown", "json", "csv"],
         default="markdown",
         help="Report format (default: markdown)"
     )
@@ -302,17 +302,35 @@ def cmd_report(args: argparse.Namespace) -> int:
     if args.format == "json":
         generator = JSONReportGenerator()
         output = generator.generate(entrain_report)
+
+        # Write output
+        if args.output:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(output)
+            print(f"Report written to {args.output}")
+        else:
+            print(output)
+
+    elif args.format == "csv":
+        if not args.output:
+            print("Error: CSV format requires --output/-o to specify output file", file=sys.stderr)
+            return 1
+
+        exporter = CSVExporter()
+        exporter.export_indicators_summary(entrain_report, args.output)
+        print(f"CSV report written to {args.output}")
+
     else:  # markdown
         generator = MarkdownReportGenerator()
         output = generator.generate(entrain_report)
 
-    # Write output
-    if args.output:
-        with open(args.output, "w", encoding="utf-8") as f:
-            f.write(output)
-        print(f"Report written to {args.output}")
-    else:
-        print(output)
+        # Write output
+        if args.output:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(output)
+            print(f"Report written to {args.output}")
+        else:
+            print(output)
 
     return 0
 
