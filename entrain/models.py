@@ -7,6 +7,8 @@ for representing conversations, measurements, and assessment results.
 All models follow the specification in ARCHITECTURE.md Section 2.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path

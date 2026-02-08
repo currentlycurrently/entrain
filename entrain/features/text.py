@@ -7,6 +7,8 @@ text-based interaction events. Uses minimal dependencies (standard NLP only).
 See ARCHITECTURE.md Section 6.1 for specification.
 """
 
+from __future__ import annotations
+
 import json
 import re
 from dataclasses import dataclass

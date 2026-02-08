@@ -10,6 +10,8 @@ References:
     - Each message has author.role, content.parts, create_time, metadata
 """
 
+from __future__ import annotations
+
 import json
 import zipfile
 from datetime import datetime

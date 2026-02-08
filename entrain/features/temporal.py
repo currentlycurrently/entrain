@@ -7,6 +7,8 @@ in a corpus. Used primarily for Dependency Formation (DF) dimension.
 See ARCHITECTURE.md Section 6.3 for specification.
 """
 
+from __future__ import annotations
+
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta

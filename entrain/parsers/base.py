@@ -7,6 +7,8 @@ export formats into the Entrain data model.
 See ARCHITECTURE.md Section 4.1 for specification.
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from pathlib import Path
 from entrain.models import Corpus

@@ -68,3 +68,8 @@ exports/
 data/private/
 *.zip
 conversations.json
+
+# Playground directory for local testing and experimentation
+# Ignore everything in playground except the README
+playground/*
+!playground/README.md
