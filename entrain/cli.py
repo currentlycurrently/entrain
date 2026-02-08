@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 
 from entrain.models import ENTRAIN_VERSION, EntrainReport
-from entrain.parsers import ChatGPTParser, ParserRegistry
+from entrain.parsers import get_default_registry
 from entrain.dimensions import (
     SRAnalyzer,
     LCAnalyzer,
@@ -116,9 +116,8 @@ def cmd_parse(args: argparse.Namespace) -> int:
         print(f"Error: File not found: {export_file}", file=sys.stderr)
         return 1
 
-    # Set up parser registry
-    registry = ParserRegistry()
-    registry.register(ChatGPTParser())
+    # Set up parser registry with all available parsers
+    registry = get_default_registry()
 
     # Try to parse
     try:
@@ -145,9 +144,8 @@ def cmd_analyze(args: argparse.Namespace) -> int:
         print(f"Error: File not found: {export_file}", file=sys.stderr)
         return 1
 
-    # Parse file
-    registry = ParserRegistry()
-    registry.register(ChatGPTParser())
+    # Parse file with all available parsers
+    registry = get_default_registry()
 
     try:
         print(f"Parsing {export_file}...")
@@ -232,9 +230,8 @@ def cmd_report(args: argparse.Namespace) -> int:
         print(f"Error: File not found: {export_file}", file=sys.stderr)
         return 1
 
-    # Parse file
-    registry = ParserRegistry()
-    registry.register(ChatGPTParser())
+    # Parse file with all available parsers
+    registry = get_default_registry()
 
     try:
         corpus = registry.parse_auto(export_file)
@@ -347,7 +344,10 @@ def cmd_info(args: argparse.Namespace) -> int:
     print("  RCD - Reality Coherence Disruption")
     print("  DF  - Dependency Formation")
     print("\nSupported Platforms:")
-    print("  • ChatGPT (JSON export)")
+    print("  • ChatGPT (JSON/ZIP export)")
+    print("  • Claude (JSON/JSONL export, browser extensions)")
+    print("  • Character.AI (JSON export)")
+    print("  • Generic CSV/JSON (any platform with role/content format)")
     print("\nFor more information: https://entrain.institute")
     print("Documentation: docs/FRAMEWORK.md, docs/ARCHITECTURE.md")
 

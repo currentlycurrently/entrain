@@ -222,4 +222,4 @@ class EntrainReport:
 
 
 # Version constant
-ENTRAIN_VERSION = "0.1.1"
+ENTRAIN_VERSION = "0.2.0"

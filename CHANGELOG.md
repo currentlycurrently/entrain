@@ -5,6 +5,60 @@ All notable changes to the Entrain Reference Library will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-02-08
+
+### Added - Phase 2 Multi-Platform Parser Support
+
+**New Parsers:**
+- **ClaudeParser** - Supports multiple Claude export formats:
+  - Browser extension JSON exports
+  - Claude Code JSONL format (~/.claude/projects/)
+  - Official Claude.ai ZIP exports
+  - Simple message array format
+  - Auto-detects format variants with flexible timestamp parsing
+
+- **CharacterAIParser** - Character.AI conversation support:
+  - Official Character.AI JSON exports
+  - CAI Tools browser extension format
+  - Character metadata parsing (name, description, greeting)
+  - Multiple chat histories per character
+  - "Swipes" support (alternative AI responses)
+
+- **GenericParser** - Universal fallback parser:
+  - CSV support with role/content columns
+  - JSON message array support
+  - Auto-groups by conversation_id
+  - Stores extra fields as metadata
+  - Works with any platform that exports role/content data
+
+**Infrastructure:**
+- `get_default_registry()` - One-line setup for all parsers
+- Auto-detection registry with ordered specificity
+- CLI updated to support all 4 platforms automatically
+- Parser test suite with 29 comprehensive test cases
+
+**Documentation:**
+- Updated ARCHITECTURE.md to v0.2.0, marked Phase 2 complete
+- Created PHASE2_COMPLETION.md with full implementation details
+- Updated CLI info command to show all supported platforms
+
+### Changed
+- All CLI commands now use default registry (auto-detect all formats)
+- Parser registry orders parsers by specificity (generic last as fallback)
+
+### Platform Support
+- ✅ ChatGPT (JSON/ZIP export)
+- ✅ Claude (JSON/JSONL export, browser extensions)
+- ✅ Character.AI (JSON export)
+- ✅ Generic CSV/JSON (any platform with role/content format)
+
+**Code Metrics:**
+- Added 1,287 lines of parser code
+- Added 543 lines of test code
+- Total: ~2,000+ lines added in Phase 2
+
+---
+
 ## [0.1.1] - 2026-02-08
 
 ### Fixed - Phase 1.5 Calibration
