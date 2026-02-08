@@ -129,69 +129,84 @@ entrain/
 │   ├── parsers/                # Export format parsers
 │   │   ├── base.py             # Parser interface ✅
 │   │   ├── chatgpt.py          # ChatGPT parser ✅
-│   │   └── ...                 # Other parsers (Phase 2)
+│   │   ├── claude.py           # Claude parser ✅
+│   │   ├── characterai.py      # Character.AI parser ✅
+│   │   └── generic.py          # Generic CSV/JSON parser ✅
 │   ├── features/               # Feature extraction
 │   │   ├── text.py             # Text features ✅
 │   │   ├── temporal.py         # Time-series features ✅
-│   │   └── audio.py            # Audio features (Phase 3)
-│   ├── dimensions/             # Dimension analyzers
+│   │   └── audio.py            # Audio features ✅
+│   ├── dimensions/             # Dimension analyzers (all 6 complete)
 │   │   ├── base.py             # Analyzer interface ✅
-│   │   ├── sycophantic_reinforcement.py  # SR analyzer ✅
-│   │   ├── linguistic_convergence.py     # LC (pending)
-│   │   ├── autonomy_erosion.py           # AE (pending)
-│   │   ├── reality_coherence.py          # RCD (pending)
-│   │   └── dependency_formation.py       # DF (pending)
-│   ├── reporting/              # Output formatting (pending)
-│   └── cli.py                  # CLI interface (pending)
-├── tests/                      # Test suite ✅
+│   │   ├── sycophantic_reinforcement.py  # SR ✅
+│   │   ├── linguistic_convergence.py     # LC ✅
+│   │   ├── autonomy_erosion.py           # AE ✅
+│   │   ├── reality_coherence.py          # RCD ✅
+│   │   ├── dependency_formation.py       # DF ✅
+│   │   └── prosodic_entrainment.py       # PE ✅
+│   ├── reporting/              # Output formatting ✅
+│   │   ├── json_report.py      # JSON reports ✅
+│   │   ├── markdown_report.py  # Markdown reports ✅
+│   │   └── csv_export.py       # CSV export ✅
+│   └── cli.py                  # CLI interface ✅
+├── tests/                      # Test suite (⚠️ needs expansion)
 ├── docs/                       # Documentation ✅
 │   ├── FRAMEWORK.md            # The framework specification
 │   ├── ARCHITECTURE.md         # Technical architecture
 │   ├── RESEARCH.md             # Research database
+│   ├── PHASE3_SUMMARY.md       # Phase 3 details
 │   └── ...
-└── examples/                   # Usage examples (pending)
+├── examples/                   # Usage examples ✅
+│   ├── phase3_audio_analysis.py         # PE example ✅
+│   ├── analyze_chatgpt_export.py        # Basic usage ✅
+│   └── synthetic_conversation.py        # Test data ✅
+├── ROADMAP.md                  # Project roadmap & planning
+└── PROJECT_STATUS.md           # Detailed status & next steps
 ```
 
 ## Current Status: Phase 3 Complete (v0.2.0)
 
-✅ **Phase 1 - Foundation (Completed):**
+### ✅ All 6 Dimensions Implemented
+
+**Phase 1 - Foundation:**
 - Core data models (InteractionEvent, Conversation, Corpus, Reports)
 - ChatGPT export parser
-- Text feature extraction (vocabulary, hedging, validation, attribution patterns)
-- Temporal feature extraction (frequency trends, time-of-day distribution)
-- Dimension analyzer base class
-- SR (Sycophantic Reinforcement) analyzer with 4 indicators:
-  - Action Endorsement Rate (AER)
-  - Perspective Mention Rate (PMR)
-  - Challenge Frequency
-  - Validation Language Density
-
-✅ **Phase 2 - Multi-platform Support (Completed):**
-- Claude parser
-- Character.AI parser
-- Generic CSV parser
-- Multi-platform parser architecture
-
-✅ **Phase 3 - Audio Analysis (Completed):**
-- Audio feature extraction using openSMILE (eGeMAPS feature set)
-- Fallback audio extraction using librosa
-- PE (Prosodic Entrainment) dimension analyzer with 6 indicators:
-  - Pitch Convergence
-  - Speech Rate Alignment
-  - Intensity Pattern Matching
-  - Spectral Similarity (timbre)
-  - Overall Prosodic Convergence
-  - Convergence Trend (longitudinal analysis)
-- Voice interaction analysis support
-- Comprehensive test coverage for audio features
-
-🚧 **In Progress:**
-- LC (Linguistic Convergence) analyzer
-- AE (Autonomy Erosion) analyzer
-- RCD (Reality Coherence Disruption) analyzer
-- DF (Dependency Formation) analyzer
+- Text & temporal feature extraction
+- **5 text-based dimension analyzers:**
+  - **SR** (Sycophantic Reinforcement) - 4 indicators
+  - **LC** (Linguistic Convergence) - 5 indicators
+  - **AE** (Autonomy Erosion) - 3 indicators
+  - **RCD** (Reality Coherence Disruption) - 3 indicators
+  - **DF** (Dependency Formation) - 5 indicators
 - Reporting modules (JSON, Markdown, CSV)
-- CLI interface enhancements
+- CLI interface (parse, analyze, report, info)
+
+**Phase 2 - Multi-platform Support:**
+- Claude conversation parser (JSON/JSONL/ZIP)
+- Character.AI parser (JSON, swipes, histories)
+- Generic CSV/JSON parser (universal fallback)
+- Parser auto-detection registry
+
+**Phase 3 - Audio Analysis:**
+- Audio feature extraction (openSMILE + librosa)
+- **PE** (Prosodic Entrainment) dimension analyzer - 6 indicators:
+  - Pitch Convergence, Speech Rate Alignment
+  - Intensity Convergence, Spectral Similarity
+  - Overall Prosodic Convergence, Convergence Trend
+- Comprehensive audio & PE test coverage
+- Voice interaction analysis support
+
+### ⚠️ Next Priority: Quality & Testing (Phase 3.5)
+
+**Current Gap:** Only 1/6 dimensions have comprehensive tests (PE)
+
+**Immediate Focus:**
+- Write comprehensive tests for SR, LC, AE, RCD, DF dimensions
+- Expand feature extractor test coverage
+- Achieve >80% code coverage
+- Set up CI/CD pipeline
+
+**See:** [ROADMAP.md](ROADMAP.md) for detailed planning and [PROJECT_STATUS.md](PROJECT_STATUS.md) for current status audit
 
 ## Documentation
 
