@@ -30,17 +30,17 @@ Entrain is to AI cognitive safety what OWASP is to web application security: a c
 | Reality Coherence Disruption | RCD | Distortion of user's epistemic relationship with reality |
 | Dependency Formation | DF | Development of emotional/cognitive reliance beyond functional utility |
 
-Each dimension is rigorously defined with measurable indicators, baseline comparisons, and citations to source research. See [FRAMEWORK.md](docs/FRAMEWORK.md) for the full specification.
+Each dimension is rigorously defined with measurable indicators, baseline comparisons, and citations to source research. See [FRAMEWORK.md](../framework/FRAMEWORK.md) for the full specification.
 
 ## Documentation
 
 | Document | Description |
 |----------|-------------|
-| [FRAMEWORK.md](docs/FRAMEWORK.md) | The core specification — taxonomy, dimensions, measurement methodology |
-| [RESEARCH.md](docs/RESEARCH.md) | Research database — cataloged papers organized by dimension |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture for the reference library |
-| [VISION.md](docs/VISION.md) | Project vision, audience, roadmap |
-| [AGENT.md](docs/AGENT.md) | Protocol for the AI research agent that maintains this project |
+| [FRAMEWORK.md](../framework/FRAMEWORK.md) | The core specification — taxonomy, dimensions, measurement methodology |
+| [RESEARCH.md](../framework/RESEARCH.md) | Research database — cataloged papers organized by dimension |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Technical architecture for the reference library |
+| [VISION.md](../project/VISION.md) | Project vision, audience, roadmap |
+| [AGENT.md](../project/AGENT.md) | Protocol for the AI research agent that maintains this project |
 
 ## Status
 
@@ -64,7 +64,7 @@ The framework synthesizes work including:
 - arXiv:2504.10650 (2025) — Will AI shape the way we speak? Sociolinguistic influence of synthetic voices
 - Zhang et al. (2025) — Taxonomy of harmful algorithmic behaviors in AI companionship (CHI 2025)
 
-See [RESEARCH.md](docs/RESEARCH.md) for the complete catalog.
+See [RESEARCH.md](../framework/RESEARCH.md) for the complete catalog.
 
 ## Contributing
 

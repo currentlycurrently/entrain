@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Documentation:**
 - Updated README with Phase 3 status and audio examples
-- Created `docs/PHASE3_SUMMARY.md` - comprehensive implementation guide
+- Created `docs/internal/build-log/PHASE3_SUMMARY.md` - comprehensive implementation guide
 - Updated FRAMEWORK.md PE dimension (already documented)
 - Updated ARCHITECTURE.md to mark Phase 3 complete
 

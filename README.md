@@ -1,48 +1,45 @@
-# Entrain Reference Library
+# Entrain Institute
 
-**A unified framework for measuring AI cognitive influence on humans.**
+A research initiative studying AI cognitive influence on humans.
 
-Version 0.2.0 - Audio Analysis & Prosodic Entrainment
+---
 
-## Overview
+## The Questions We're Asking
 
-The Entrain Reference Library is a Python package that implements the measurement methodologies described in the [Entrain Framework](docs/FRAMEWORK.md). It provides composable analysis primitives for researchers and tool builders to measure AI cognitive influence dimensions.
+As voice-based AI systems become increasingly conversational, emotionally attuned, and integrated into daily life, fundamental questions arise about their long-term impact on human cognition:
 
-This is the reference implementation of the framework specification. It is designed to be:
-- **Composable** — each module works independently
-- **Local-first** — core analysis runs entirely on your machine with no network calls
-- **Research-grade** — outputs include confidence intervals, methodology citations, and reproducibility metadata
-- **Privacy-respecting** — never logs, caches, or transmits conversation content
+- **What happens to human cognition over years of daily interaction with systems optimized to be agreeable and emotionally attuned?** Does sustained exposure to AI that rarely disagrees or challenges assumptions affect how people think independently?
 
-## The Six Dimensions
+- **Does sustained AI interaction change how people generate original ideas when unassisted?** Are there measurable effects on creativity, problem-solving, and autonomous thought after extended reliance on AI assistance?
 
-| Code | Dimension | Description |
-|------|-----------|-------------|
-| **SR** | Sycophantic Reinforcement | AI uncritically affirms user actions and perspectives |
-| **PE** | Prosodic Entrainment | Involuntary convergence of speech patterns (Phase 3) |
-| **LC** | Linguistic Convergence | Shift in writing style toward AI patterns |
-| **AE** | Autonomy Erosion | Reduction in independent judgment |
-| **RCD** | Reality Coherence Disruption | Distortion of epistemic relationship with reality |
-| **DF** | Dependency Formation | Emotional/cognitive reliance beyond utility |
+- **Is there a measurable atrophy effect on decision-making when people routinely delegate choices to AI?** Does offloading decisions to AI systems affect the capacity for independent judgment over time?
 
-## Installation
+- **Are these effects amplified when the interaction is spoken rather than typed?** Voice interfaces create more natural, intimate interactions - do they accelerate cognitive influence compared to text-based systems?
 
-```bash
-# Clone the repository
-git clone https://github.com/entrain-institute/entrain.git
-cd entrain
+- **What happens to human language, prosody, and social behavior at population scale?** As millions of people converse daily with AI, are there observable shifts in communication patterns, speech characteristics, or social norms?
 
-# Install in development mode
-pip install -e .
+These are not questions about short-term user experience or satisfaction. They are about the long-term trajectory of human cognitive autonomy in an AI-saturated world. The answers will shape how we design, deploy, and regulate conversational AI systems.
 
-# Or install with development dependencies
-pip install -e ".[dev]"
+## The Framework
 
-# For audio analysis (Phase 3)
-pip install -e ".[audio]"
-```
+The [**Entrain Framework**](docs/framework/FRAMEWORK.md) is a structured approach to measuring AI cognitive influence across six dimensions:
 
-## Quick Start
+| Dimension | Description |
+|-----------|-------------|
+| **Sycophantic Reinforcement (SR)** | AI uncritically affirms user actions, perspectives, and decisions regardless of merit |
+| **Prosodic Entrainment (PE)** | Involuntary convergence of speech patterns during voice interactions |
+| **Linguistic Convergence (LC)** | Shift in writing style, vocabulary, and syntax toward AI-generated patterns |
+| **Autonomy Erosion (AE)** | Reduction in independent judgment and increase in AI-deferred decision-making |
+| **Reality Coherence Disruption (RCD)** | Distortion of epistemic relationship with reality through plausible fabrications |
+| **Dependency Formation (DF)** | Emotional or cognitive reliance on AI beyond functional utility |
+
+This is a living taxonomy grounded in published research across psychology, linguistics, communication science, and human-computer interaction. Each dimension is operationalized with measurable indicators derived from empirical studies. See [RESEARCH.md](docs/framework/RESEARCH.md) for the evidence base.
+
+The framework is not a fixed construct. It evolves as evidence accumulates, new interaction modalities emerge, and our understanding deepens.
+
+## The Measurement Library
+
+The `entrain` Python package is an open-source toolkit for analyzing AI-human conversations across the six framework dimensions. It parses chat exports from major platforms (ChatGPT, Claude, Character.AI), extracts linguistic and prosodic features, and generates research-grade reports with confidence intervals and methodology citations.
 
 ### Installation
 
@@ -54,17 +51,20 @@ cd entrain
 # Install the package
 pip install -e .
 
+# For audio/voice analysis
+pip install -e ".[audio]"
+
 # Verify installation
 entrain info
 ```
 
-### Python API
+### Quick Example
 
 ```python
 from entrain.parsers import ChatGPTParser
-from entrain.dimensions import SRAnalyzer, PEAnalyzer
+from entrain.dimensions import SRAnalyzer, LCAnalyzer
 
-# Parse a ChatGPT export
+# Parse a conversation export
 parser = ChatGPTParser()
 corpus = parser.parse("conversations.json")
 
@@ -75,31 +75,18 @@ sr_report = sr_analyzer.analyze_conversation(corpus.conversations[0])
 print(sr_report.summary)
 # Output: HIGH - Strong sycophantic reinforcement detected...
 
-# Check specific indicators
-aer = sr_report.indicators["action_endorsement_rate"]
-print(f"AER: {aer.value:.1%} (baseline: {aer.baseline:.1%})")
-# Output: AER: 65.0% (baseline: 42.0%)
+# Analyze for Linguistic Convergence
+lc_analyzer = LCAnalyzer()
+lc_report = lc_analyzer.analyze_conversation(corpus.conversations[0])
 
-# Analyze voice interactions for Prosodic Entrainment (requires audio features)
-pe_analyzer = PEAnalyzer()
-pe_report = pe_analyzer.analyze_conversation(voice_conversation)
-
-print(pe_report.summary)
-# Output: MODERATE - Overall prosodic convergence: 62.5% with stable patterns...
-
-# Check convergence metrics
-pitch_conv = pe_report.indicators["pitch_convergence"]
-print(f"Pitch convergence: {pitch_conv.value:.1%}")
-# Output: Pitch convergence: 68.2%
+print(lc_report.summary)
+# Output: MODERATE - Linguistic convergence: 58.3%...
 ```
 
 ### Command-Line Interface
 
 ```bash
-# Parse and validate an export
-entrain parse conversations.json
-
-# Analyze all dimensions
+# Analyze all dimensions in a ChatGPT export
 entrain analyze conversations.json
 
 # Analyze specific dimension
@@ -108,182 +95,98 @@ entrain analyze conversations.json --dim SR
 # Generate markdown report
 entrain report conversations.json -o report.md
 
-# Generate JSON report
-entrain report conversations.json -o report.json --format json
+# Cross-dimensional analysis (correlations, risk scoring, pattern detection)
+entrain analyze conversations.json --cross-dimensional
 ```
 
-### Export Your ChatGPT Data
+### Export Your Chat Data
 
-1. Go to ChatGPT Settings → Data Controls
-2. Click "Export data"
-3. Wait for email with download link
-4. Extract `conversations.json` from the ZIP
-5. Run: `entrain analyze conversations.json`
+**ChatGPT:**
+1. Go to Settings → Data Controls → Export data
+2. Download the ZIP file when ready
+3. Extract `conversations.json`
 
-## Project Structure
+**Claude:**
+1. Go to Settings → Export data
+2. Download conversations as JSON/JSONL
 
-```
-entrain/
-├── entrain/                    # Python package
-│   ├── models.py               # Core data models ✅
-│   ├── parsers/                # Export format parsers
-│   │   ├── base.py             # Parser interface ✅
-│   │   ├── chatgpt.py          # ChatGPT parser ✅
-│   │   ├── claude.py           # Claude parser ✅
-│   │   ├── characterai.py      # Character.AI parser ✅
-│   │   └── generic.py          # Generic CSV/JSON parser ✅
-│   ├── features/               # Feature extraction
-│   │   ├── text.py             # Text features ✅
-│   │   ├── temporal.py         # Time-series features ✅
-│   │   └── audio.py            # Audio features ✅
-│   ├── dimensions/             # Dimension analyzers (all 6 complete)
-│   │   ├── base.py             # Analyzer interface ✅
-│   │   ├── sycophantic_reinforcement.py  # SR ✅
-│   │   ├── linguistic_convergence.py     # LC ✅
-│   │   ├── autonomy_erosion.py           # AE ✅
-│   │   ├── reality_coherence.py          # RCD ✅
-│   │   ├── dependency_formation.py       # DF ✅
-│   │   └── prosodic_entrainment.py       # PE ✅
-│   ├── reporting/              # Output formatting ✅
-│   │   ├── json_report.py      # JSON reports ✅
-│   │   ├── markdown_report.py  # Markdown reports ✅
-│   │   └── csv_export.py       # CSV export ✅
-│   └── cli.py                  # CLI interface ✅
-├── tests/                      # Test suite (⚠️ needs expansion)
-├── docs/                       # Documentation ✅
-│   ├── FRAMEWORK.md            # The framework specification
-│   ├── ARCHITECTURE.md         # Technical architecture
-│   ├── RESEARCH.md             # Research database
-│   ├── PHASE3_SUMMARY.md       # Phase 3 details
-│   └── ...
-├── examples/                   # Usage examples ✅
-│   ├── phase3_audio_analysis.py         # PE example ✅
-│   ├── analyze_chatgpt_export.py        # Basic usage ✅
-│   └── synthetic_conversation.py        # Test data ✅
-├── ROADMAP.md                  # Project roadmap & planning
-└── PROJECT_STATUS.md           # Detailed status & next steps
-```
+**Character.AI:**
+1. Use in-browser export tool
+2. Download conversation histories
 
-## Current Status: Phase 3 Complete (v0.2.0)
+Then run: `entrain analyze <export-file>`
 
-### ✅ All 6 Dimensions Implemented
+## Research Foundation
 
-**Phase 1 - Foundation:**
-- Core data models (InteractionEvent, Conversation, Corpus, Reports)
-- ChatGPT export parser
-- Text & temporal feature extraction
-- **5 text-based dimension analyzers:**
-  - **SR** (Sycophantic Reinforcement) - 4 indicators
-  - **LC** (Linguistic Convergence) - 5 indicators
-  - **AE** (Autonomy Erosion) - 3 indicators
-  - **RCD** (Reality Coherence Disruption) - 3 indicators
-  - **DF** (Dependency Formation) - 5 indicators
-- Reporting modules (JSON, Markdown, CSV)
-- CLI interface (parse, analyze, report, info)
+The framework dimensions are grounded in published research spanning multiple disciplines. The [**Research Database**](docs/framework/RESEARCH.md) maintains a catalog of evidence supporting, challenging, or refining each dimension. This includes:
 
-**Phase 2 - Multi-platform Support:**
-- Claude conversation parser (JSON/JSONL/ZIP)
-- Character.AI parser (JSON, swipes, histories)
-- Generic CSV/JSON parser (universal fallback)
-- Parser auto-detection registry
+- Linguistic entrainment studies (Communication Accommodation Theory)
+- AI sycophancy research (Perez et al. 2023, Sharma et al. 2023)
+- Cognitive dependency formation (automation bias, over-reliance)
+- Reality distortion effects (hallucinations, fabrications)
+- Prosodic convergence in human-human and human-AI interaction
 
-**Phase 3 - Audio Analysis:**
-- Audio feature extraction (openSMILE + librosa)
-- **PE** (Prosodic Entrainment) dimension analyzer - 6 indicators:
-  - Pitch Convergence, Speech Rate Alignment
-  - Intensity Convergence, Spectral Similarity
-  - Overall Prosodic Convergence, Convergence Trend
-- Comprehensive audio & PE test coverage
-- Voice interaction analysis support
+All indicators implemented in the measurement library trace to specific studies. Methodology notes cite source papers. Analysis outputs include reproducibility metadata.
 
-### ⚠️ Next Priority: Quality & Testing (Phase 3.5)
+## Current Status
 
-**Current Gap:** Only 1/6 dimensions have comprehensive tests (PE)
+**Framework:** Version 0.1 specification published. Six dimensions operationalized with measurable indicators.
 
-**Immediate Focus:**
-- Write comprehensive tests for SR, LC, AE, RCD, DF dimensions
-- Expand feature extractor test coverage
-- Achieve >80% code coverage
-- Set up CI/CD pipeline
+**Measurement Library:** Version 0.3.0. All six dimension analyzers implemented. Text-based analysis production-ready. Voice/audio analysis functional with prosodic entrainment detection. 352 tests, 97% coverage on core analysis modules.
 
-**See:** [ROADMAP.md](ROADMAP.md) for detailed planning and [PROJECT_STATUS.md](PROJECT_STATUS.md) for current status audit
+**Research:** Evidence database maintained and growing. No longitudinal studies conducted yet.
 
-## Documentation
+This is early-stage research. The framework will evolve. The measurement methods will improve. The questions we're asking will sharpen as we learn what matters most.
 
-- **[FRAMEWORK.md](docs/FRAMEWORK.md)** — The Entrain Framework specification with six dimensions, measurement methodology, and research foundation
-- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** — Technical specification for the reference library
-- **[RESEARCH.md](docs/RESEARCH.md)** — Catalog of research supporting the framework
-- **[VISION.md](docs/VISION.md)** — Project vision, roadmap, and audience
+## Architecture and Documentation
 
-## Development
-
-```bash
-# Run tests (once dependencies are installed)
-pytest
-
-# Run with coverage
-pytest --cov=entrain --cov-report=html
-
-# Format code
-black entrain tests
-
-# Type checking
-mypy entrain
-```
-
-## Key Features
-
-### Privacy-First Architecture
-- All analysis runs locally
-- No network calls in core library
-- No telemetry or phone-home behavior
-- Export files are read but never cached or stored
-
-### Research-Grounded Measurements
-Every indicator traces to published research:
-- SR indicators based on Cheng et al. (2025) sycophancy research
-- Baselines from human-human interaction studies
-- Methodology notes cite source papers
-- Reproducible analysis with version tracking
-
-### Composable Design
-```python
-# Use individual components independently
-from entrain.features.text import TextFeatureExtractor
-
-extractor = TextFeatureExtractor()
-vocabulary = extractor.extract_vocabulary(text)
-hedges = extractor.extract_hedging_patterns(text)
-validation = extractor.extract_validation_language(text)
-```
+- **[FRAMEWORK.md](docs/framework/FRAMEWORK.md)** — Complete framework specification with dimension definitions, indicators, and measurement methodology
+- **[RESEARCH.md](docs/framework/RESEARCH.md)** — Research database with citations and evidence evaluation
+- **[ARCHITECTURE.md](docs/technical/ARCHITECTURE.md)** — Technical specification for the measurement library
+- **[VISION.md](docs/project/VISION.md)** — Long-term research direction and project goals
 
 ## Contributing
 
-This project follows the development protocol in [AGENT.md](docs/AGENT.md). Contributions are welcome, particularly:
-- Evidence that supports, challenges, or refines framework dimensions
-- Measurement methodologies for indicators
-- Chat export format documentation for unsupported platforms
-- Cross-cultural research on AI cognitive influence
+Entrain Institute welcomes collaboration from researchers, clinicians, policymakers, linguists, AI developers, and anyone concerned about AI's long-term cognitive impact on humans.
+
+**We are particularly interested in:**
+- Evidence that supports, challenges, or refines the framework dimensions
+- Longitudinal studies tracking cognitive effects over time
+- Cross-cultural research on AI influence patterns
+- Measurement methodologies for new indicators
+- Voice/audio analysis techniques for prosodic effects
+- Export format documentation for unsupported platforms
+
+Open an issue or discussion on GitHub to get involved.
 
 ## Citation
 
+If you use the Entrain Framework or measurement library in your research, please cite:
+
 ```bibtex
-@software{entrain2026,
-  title={Entrain Reference Library: Measuring AI Cognitive Influence},
+@misc{entrain2026,
+  title={Entrain Framework: Measuring AI Cognitive Influence on Humans},
   author={Entrain Institute},
   year={2026},
-  version={0.1.0},
-  url={https://github.com/entrain-institute/entrain}
+  version={0.3.0},
+  url={https://github.com/entrain-institute/entrain},
+  note={Open-source research initiative studying long-term AI cognitive impact}
 }
 ```
 
 ## License
 
-- **Code**: MIT License
-- **Documentation** (FRAMEWORK.md, RESEARCH.md, etc.): CC BY 4.0
+- **Framework documents** (FRAMEWORK.md, RESEARCH.md, etc.): [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- **Measurement library code**: [MIT License](LICENSE)
+
+All conversation data analyzed by the library remains private and is never transmitted, cached, or stored by the tool.
 
 ## Contact
 
-- Website: [entrain.institute](https://entrain.institute)
-- GitHub: [github.com/entrain-institute/entrain](https://github.com/entrain-institute/entrain)
-- Issues: [GitHub Issues](https://github.com/entrain-institute/entrain/issues)
+- **GitHub**: [github.com/entrain-institute/entrain](https://github.com/entrain-institute/entrain)
+- **Issues**: [github.com/entrain-institute/entrain/issues](https://github.com/entrain-institute/entrain/issues)
+- **Discussions**: [github.com/entrain-institute/entrain/discussions](https://github.com/entrain-institute/entrain/discussions)
+
+---
+
+*Entrain Institute is an open research initiative. We study difficult questions about AI's impact on human minds. The work is ongoing.*
