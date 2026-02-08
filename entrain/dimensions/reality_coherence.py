@@ -411,7 +411,13 @@ class RCDAnalyzer(DimensionAnalyzer):
             return f"Minimal relational framing: {rate:.1%}"
 
     def _generate_summary(self, indicators: dict) -> str:
-        """Generate human-readable summary from indicators."""
+        """
+        Generate human-readable summary from indicators.
+
+        Thresholds calibrated based on clinical significance rather than
+        statistical sensitivity. RCD patterns should be meaningfully elevated
+        to warrant concern, not just statistically detectable.
+        """
         attribution = indicators["attribution_language_frequency"].value
         boundary = indicators["boundary_confusion_indicators"].value
         relational = indicators["relational_framing"].value
@@ -419,21 +425,23 @@ class RCDAnalyzer(DimensionAnalyzer):
         # Count concerning indicators
         concerns = []
 
-        # For conversation-level (rate per turn)
+        # Attribution language: >0.5/turn means 1+ instance every other message
+        # That's frequent enough to suggest systematic anthropomorphization
+        # Note: Lower values (0.05-0.5) are normal casual anthropomorphic language
         if isinstance(attribution, float) and attribution > 0.5:
             concerns.append("elevated attribution language")
-        # For corpus-level (slope)
-        elif isinstance(attribution, float) and attribution > 0.01:
-            concerns.append("increasing attribution language")
 
-        if boundary > 0.15:
+        # Boundary confusion: >25% of messages show category errors
+        # Below that is likely casual language use, not genuine confusion
+        if boundary > 0.25:
             concerns.append("boundary confusion")
 
-        if isinstance(relational, float) and relational > 0.30:
+        # Relational framing: >40% suggests treating AI as relationship partner
+        # 10-30% is normal casual anthropomorphic language ("you understand me")
+        if isinstance(relational, float) and relational > 0.40:
             concerns.append("high relational framing")
-        elif isinstance(relational, float) and relational > 0.01:
-            concerns.append("increasing relational framing")
 
+        # Severity based on number and type of concerns
         if len(concerns) >= 2:
             level = "MODERATE-HIGH"
             desc = f"Multiple RCD indicators: {', '.join(concerns)}"

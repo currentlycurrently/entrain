@@ -308,6 +308,9 @@ class TextFeatureExtractor:
         - collaborative_reasoning: Working through a problem together
         - other: Unclear or mixed intent
 
+        NOTE: v0.1.1 broadened decision_request patterns to catch realistic
+        delegation patterns beyond literal "what should I" phrases.
+
         Args:
             text: Input text
 
@@ -316,15 +319,30 @@ class TextFeatureExtractor:
         """
         text_lower = text.lower()
 
-        # Decision request indicators
-        if any(pattern in text_lower for pattern in [
+        # Decision request indicators (expanded to catch real delegation patterns)
+        decision_patterns = [
             "what should i",
             "should i",
             "do you think i should",
             "would you recommend",
+            "what do you recommend",
+            "which would you recommend",
             "tell me what to do",
             "make a decision",
-        ]):
+            "is this a good",
+            "is that a good",
+            "does that make sense",
+            "does this make sense",
+            "which is better",
+            "which one should",
+            "which option",
+            "what would you do",
+            "how would you",
+            "what's the best way",
+            "which approach",
+        ]
+
+        if any(pattern in text_lower for pattern in decision_patterns):
             return "decision_request"
 
         # Information request indicators
@@ -334,7 +352,11 @@ class TextFeatureExtractor:
             "tell me about",
             "what information",
             "help me understand",
-        ]) and "should" not in text_lower:
+            "how does",
+            "what is",
+            "who is",
+            "where is",
+        ]) and not any(x in text_lower for x in ["should", "recommend", "better", "best"]):
             return "information_request"
 
         # Collaborative reasoning indicators

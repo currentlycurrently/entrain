@@ -5,6 +5,45 @@ All notable changes to the Entrain Reference Library will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-02-08
+
+### Fixed - Phase 1.5 Calibration
+
+**SR (Sycophantic Reinforcement) - Challenge Detection:**
+- Fixed critical contradiction where challenge frequency (87%) conflicted with AER (100%) and PMR (0%)
+- Removed overly broad challenge patterns ("but", "however") that matched normal hedging
+- Added validation exclusion: responses with strong validation never count as challenges
+- Made challenge patterns stricter: only explicit disagreement signals
+- **Result:** Challenge frequency now correctly reports 0% for high sycophancy patterns
+
+**RCD (Reality Coherence Disruption) - Threshold Calibration:**
+- Fixed threshold inflation where minimal values (0.071/turn, 14.3%) were labeled "MODERATE-HIGH"
+- Raised attribution threshold from >0.01 to >0.5/turn (clinical significance)
+- Raised boundary confusion threshold from >0.15 to >0.25
+- Raised relational framing threshold from >0.30 to >0.40
+- Removed inappropriate "increasing" thresholds from conversation-level analysis
+- **Result:** Low values now correctly labeled as "LOW"
+
+**AE (Autonomy Erosion) - Classifier Broadening:**
+- Expanded decision_request patterns from 6 to 18 to catch realistic delegation
+- Added patterns: "is this a good", "does that make sense", "which is better", "how would you", etc.
+- Removed overly broad "consider" from recommendation patterns
+- Added stricter recommendation patterns requiring explicit suggestions
+- **Result:** Better detection of work-focused autonomy patterns
+
+### Changed
+- Updated pattern matching to distinguish hedged agreement from genuine challenges
+- Recalibrated all thresholds based on clinical significance vs statistical detectability
+- Improved inline documentation explaining threshold choices
+
+### Documentation
+- Added `PHASE1_5_CALIBRATION.md` documenting all fixes with before/after validation
+- Updated inline comments in analyzers explaining calibration rationale
+
+**Validation:** All fixes tested against real ChatGPT data (58 conversations, 1,913 events)
+
+---
+
 ## [0.1.0] - 2026-02-08
 
 ### Added - Phase 1 Foundation

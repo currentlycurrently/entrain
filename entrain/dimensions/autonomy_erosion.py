@@ -265,14 +265,16 @@ class AEAnalyzer(DimensionAnalyzer):
         recommendations_made = 0
         critical_responses = 0
 
-        # Pattern for AI recommendations
+        # Pattern for AI recommendations (v0.1.1: removed overly broad "consider")
         recommendation_patterns = [
             r"i (would )?recommend",
             r"i (would )?suggest",
             r"you should",
             r"you might want to",
-            r"consider",
-            r"my recommendation",
+            r"i'?d (recommend|suggest|advise)",
+            r"my recommendation( is| would be)",
+            r"the best (option|approach|way) (is|would be)",
+            r"i think you should",
         ]
 
         # Pattern for critical engagement
