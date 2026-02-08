@@ -7,7 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.2.0] - 2026-02-08
 
-### Added - Phase 2 Multi-Platform Parser Support
+### Added - Phase 3: Audio Analysis & Prosodic Entrainment
+
+**Audio Feature Extraction:**
+- **AudioFeatureExtractor** - Production-ready acoustic analysis:
+  - OpenSMILE integration (eGeMAPS - 88 acoustic features)
+  - Librosa fallback for basic prosodic analysis
+  - Extracts pitch (F0), intensity, speech rate, spectral features
+  - Convergence computation between user and AI
+  - Longitudinal convergence tracking over time
+  - Graceful dependency handling (optional audio support)
+
+**PE (Prosodic Entrainment) Dimension Analyzer:**
+- **PEAnalyzer** - 6 indicators for voice interaction analysis:
+  - Pitch Convergence - F0 similarity tracking
+  - Speech Rate Alignment - rhythm/tempo convergence
+  - Intensity Convergence - loudness pattern matching
+  - Spectral Similarity - timbre convergence (voice quality)
+  - Overall Prosodic Convergence - composite metric (baseline: 50%)
+  - Convergence Trend - slope analysis (increasing/stable/decreasing)
+  - Research-grounded interpretations (HIGH/MODERATE/LOW)
+  - Citations: "Will AI Shape the Way We Speak?" (2025), Ostrand et al. (2023), Cohn et al. (2023)
+
+**Testing & Examples:**
+- Comprehensive audio feature extraction tests (380 lines)
+- Complete PE analyzer test suite (513 lines)
+- Full usage example: `examples/phase3_audio_analysis.py` (453 lines)
+- Graceful test skipping when audio dependencies unavailable
+
+**Documentation:**
+- Updated README with Phase 3 status and audio examples
+- Created `docs/PHASE3_SUMMARY.md` - comprehensive implementation guide
+- Updated FRAMEWORK.md PE dimension (already documented)
+- Updated ARCHITECTURE.md to mark Phase 3 complete
+
+**Installation:**
+```bash
+pip install entrain[audio]  # For openSMILE and librosa support
+```
+
+**Code Metrics:**
+- Added 474 lines: `entrain/features/audio.py`
+- Added 534 lines: `entrain/dimensions/prosodic_entrainment.py`
+- Added 893 lines: test coverage
+- Added 453 lines: example code
+- Total: ~2,400+ lines added in Phase 3
+
+### Changed
+- Version bumped to 0.2.0
+- `AudioFeatures` model now fully utilized (was placeholder)
+- Optional audio module exports in `entrain/features/__init__.py`
+- Optional PE analyzer export in `entrain/dimensions/__init__.py`
+
+### Phase 2: Multi-Platform Parser Support (also in v0.2.0)
 
 **New Parsers:**
 - **ClaudeParser** - Supports multiple Claude export formats:
@@ -233,17 +285,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance optimization
 - Cross-cultural research integration
 
-## [Unreleased] - Phase 3 Roadmap
+## [Unreleased] - Phase 4 Roadmap
 
 ### Planned
 
-- Audio feature extraction (openSMILE integration)
-- PE (Prosodic Entrainment) dimension analyzer
-- Voice interaction analysis capabilities
+- Enhanced CLI interface with progress bars and better error messages
+- Additional dimension analyzer improvements
+- Real-time audio analysis (streaming)
+- Voice Activity Detection (VAD) for better pause detection
 - Hume Expression Measurement API integration (optional)
-- Voice-specific baselines and validation
-- Multimodal analysis (text + voice)
+- Enhanced visualizations and reporting
+- Performance optimization for large corpora
+- Cross-cultural prosody research integration
 
 ---
 
+[0.2.0]: https://github.com/entrain-institute/entrain/releases/tag/v0.2.0
+[0.1.1]: https://github.com/entrain-institute/entrain/releases/tag/v0.1.1
 [0.1.0]: https://github.com/entrain-institute/entrain/releases/tag/v0.1.0

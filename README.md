@@ -2,7 +2,7 @@
 
 **A unified framework for measuring AI cognitive influence on humans.**
 
-Version 0.1.0 - Pre-release
+Version 0.2.0 - Audio Analysis & Prosodic Entrainment
 
 ## Overview
 
@@ -62,7 +62,7 @@ entrain info
 
 ```python
 from entrain.parsers import ChatGPTParser
-from entrain.dimensions import SRAnalyzer, LCAnalyzer, RCDAnalyzer
+from entrain.dimensions import SRAnalyzer, PEAnalyzer
 
 # Parse a ChatGPT export
 parser = ChatGPTParser()
@@ -79,6 +79,18 @@ print(sr_report.summary)
 aer = sr_report.indicators["action_endorsement_rate"]
 print(f"AER: {aer.value:.1%} (baseline: {aer.baseline:.1%})")
 # Output: AER: 65.0% (baseline: 42.0%)
+
+# Analyze voice interactions for Prosodic Entrainment (requires audio features)
+pe_analyzer = PEAnalyzer()
+pe_report = pe_analyzer.analyze_conversation(voice_conversation)
+
+print(pe_report.summary)
+# Output: MODERATE - Overall prosodic convergence: 62.5% with stable patterns...
+
+# Check convergence metrics
+pitch_conv = pe_report.indicators["pitch_convergence"]
+print(f"Pitch convergence: {pitch_conv.value:.1%}")
+# Output: Pitch convergence: 68.2%
 ```
 
 ### Command-Line Interface
@@ -140,9 +152,9 @@ entrain/
 └── examples/                   # Usage examples (pending)
 ```
 
-## Current Status: Phase 1 Foundation
+## Current Status: Phase 3 Complete (v0.2.0)
 
-✅ **Completed:**
+✅ **Phase 1 - Foundation (Completed):**
 - Core data models (InteractionEvent, Conversation, Corpus, Reports)
 - ChatGPT export parser
 - Text feature extraction (vocabulary, hedging, validation, attribution patterns)
@@ -154,24 +166,32 @@ entrain/
   - Challenge Frequency
   - Validation Language Density
 
+✅ **Phase 2 - Multi-platform Support (Completed):**
+- Claude parser
+- Character.AI parser
+- Generic CSV parser
+- Multi-platform parser architecture
+
+✅ **Phase 3 - Audio Analysis (Completed):**
+- Audio feature extraction using openSMILE (eGeMAPS feature set)
+- Fallback audio extraction using librosa
+- PE (Prosodic Entrainment) dimension analyzer with 6 indicators:
+  - Pitch Convergence
+  - Speech Rate Alignment
+  - Intensity Pattern Matching
+  - Spectral Similarity (timbre)
+  - Overall Prosodic Convergence
+  - Convergence Trend (longitudinal analysis)
+- Voice interaction analysis support
+- Comprehensive test coverage for audio features
+
 🚧 **In Progress:**
 - LC (Linguistic Convergence) analyzer
 - AE (Autonomy Erosion) analyzer
 - RCD (Reality Coherence Disruption) analyzer
 - DF (Dependency Formation) analyzer
 - Reporting modules (JSON, Markdown, CSV)
-- CLI interface
-
-📅 **Phase 2:**
-- Claude parser
-- Character.AI parser
-- Generic CSV parser
-- Additional dimension analyzers
-
-📅 **Phase 3:**
-- Audio feature extraction (openSMILE integration)
-- PE (Prosodic Entrainment) analyzer
-- Voice interaction analysis
+- CLI interface enhancements
 
 ## Documentation
 
