@@ -23,6 +23,13 @@ from entrain.dimensions import (
 )
 from entrain.reporting import JSONReportGenerator, MarkdownReportGenerator, CSVExporter
 
+# Import cross-dimensional analysis (optional, Phase 4.1+)
+try:
+    from entrain.analysis import CrossDimensionalAnalyzer
+    CROSS_DIMENSIONAL_AVAILABLE = True
+except ImportError:
+    CROSS_DIMENSIONAL_AVAILABLE = False
+
 
 def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser for the CLI."""
@@ -71,6 +78,11 @@ def create_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Analyze entire corpus (default: first conversation only)"
     )
+    analyze_parser.add_argument(
+        "--cross-dimensional",
+        action="store_true",
+        help="Include cross-dimensional analysis (correlations, risk scoring, patterns)"
+    )
 
     # Report command
     report_parser = subparsers.add_parser(
@@ -97,6 +109,11 @@ def create_parser() -> argparse.ArgumentParser:
         "--dim",
         choices=["SR", "LC", "AE", "RCD", "DF"],
         help="Analyze specific dimension only"
+    )
+    report_parser.add_argument(
+        "--cross-dimensional",
+        action="store_true",
+        help="Include cross-dimensional analysis in report"
     )
 
     # Info command
@@ -219,6 +236,50 @@ def cmd_analyze(args: argparse.Namespace) -> int:
 
         print()
 
+    # Cross-dimensional analysis (if requested)
+    if args.cross_dimensional and CROSS_DIMENSIONAL_AVAILABLE:
+        print("="*60)
+        print("CROSS-DIMENSIONAL ANALYSIS")
+        print("="*60 + "\n")
+
+        # Create a mock EntrainReport for cross-dimensional analysis
+        entrain_report = EntrainReport(
+            version=ENTRAIN_VERSION,
+            generated_at=datetime.now(),
+            input_summary={"conversations": len(corpus.conversations)},
+            dimensions=results,
+            methodology="CLI analysis"
+        )
+
+        # Run cross-dimensional analyzer
+        cross_analyzer = CrossDimensionalAnalyzer()
+        try:
+            cross_report = cross_analyzer.analyze(entrain_report)
+
+            # Display risk score
+            risk_icons = {"LOW": "🟢", "MODERATE": "🟡", "HIGH": "🟠", "SEVERE": "🔴"}
+            icon = risk_icons.get(cross_report.risk_score.level, "")
+            print(f"Overall Risk: {icon} {cross_report.risk_score.level} ({cross_report.risk_score.score:.0%})")
+            print(f"\n{cross_report.risk_score.interpretation}\n")
+
+            # Display patterns
+            if cross_report.patterns:
+                print(f"Detected Patterns ({len(cross_report.patterns)}):\n")
+                for pattern in cross_report.patterns:
+                    pattern_icon = risk_icons.get(pattern.severity, "")
+                    print(f"  {pattern_icon} [{pattern.severity}] {pattern.pattern_id.replace('_', ' ').title()}")
+                    print(f"     {pattern.description}")
+                    print(f"     → Recommendation: {pattern.recommendation}\n")
+
+            print(f"Summary: {cross_report.summary}\n")
+
+        except Exception as e:
+            print(f"  ✗ Cross-dimensional analysis failed: {e}\n", file=sys.stderr)
+
+    elif args.cross_dimensional and not CROSS_DIMENSIONAL_AVAILABLE:
+        print("\nWarning: Cross-dimensional analysis not available. Install with:", file=sys.stderr)
+        print("  pip install -e .[analysis]", file=sys.stderr)
+
     return 0
 
 
@@ -295,6 +356,18 @@ def cmd_report(args: argparse.Namespace) -> int:
         methodology="Text-based analysis using Entrain Reference Library v" + ENTRAIN_VERSION
     )
 
+    # Add cross-dimensional analysis if requested
+    if args.cross_dimensional and CROSS_DIMENSIONAL_AVAILABLE:
+        try:
+            cross_analyzer = CrossDimensionalAnalyzer()
+            cross_report = cross_analyzer.analyze(entrain_report)
+            # Attach to the report (reporters will check for this attribute)
+            entrain_report.cross_dimensional_analysis = cross_report
+        except Exception as e:
+            print(f"Warning: Cross-dimensional analysis failed: {e}", file=sys.stderr)
+    elif args.cross_dimensional and not CROSS_DIMENSIONAL_AVAILABLE:
+        print("Warning: Cross-dimensional analysis not available", file=sys.stderr)
+
     # Generate report
     if args.format == "json":
         generator = JSONReportGenerator()
@@ -343,6 +416,16 @@ def cmd_info(args: argparse.Namespace) -> int:
     print("  AE  - Autonomy Erosion")
     print("  RCD - Reality Coherence Disruption")
     print("  DF  - Dependency Formation")
+
+    print("\nCross-Dimensional Analysis (Phase 4.1+):")
+    if CROSS_DIMENSIONAL_AVAILABLE:
+        print("  ✓ Available - Use --cross-dimensional flag")
+        print("    • Correlation matrices between dimensions")
+        print("    • Overall risk scoring (LOW/MODERATE/HIGH/SEVERE)")
+        print("    • Pattern detection across dimensions")
+    else:
+        print("  ✗ Not installed")
+
     print("\nSupported Platforms:")
     print("  • ChatGPT (JSON/ZIP export)")
     print("  • Claude (JSON/JSONL export, browser extensions)")
