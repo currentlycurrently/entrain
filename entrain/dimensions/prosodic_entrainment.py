@@ -126,9 +126,7 @@ class PEAnalyzer(DimensionAnalyzer):
                 baseline=None,  # No established baseline yet
                 unit="similarity (0-1)",
                 confidence=0.85,
-                interpretation=self._interpret_convergence(
-                    "pitch", pitch_conv['mean'], pitch_conv['std']
-                )
+                interpretation=f"Pitch convergence: {pitch_conv['mean']:.2f} (std: {pitch_conv['std']:.2f})"
             ),
             "speech_rate_alignment": IndicatorResult(
                 name="speech_rate_alignment",
@@ -136,9 +134,7 @@ class PEAnalyzer(DimensionAnalyzer):
                 baseline=None,
                 unit="similarity (0-1)",
                 confidence=0.80,
-                interpretation=self._interpret_convergence(
-                    "speech rate", rate_conv['mean'], rate_conv['std']
-                )
+                interpretation=f"Speech rate convergence: {rate_conv['mean']:.2f} (std: {rate_conv['std']:.2f})"
             ),
             "intensity_convergence": IndicatorResult(
                 name="intensity_convergence",
@@ -146,9 +142,7 @@ class PEAnalyzer(DimensionAnalyzer):
                 baseline=None,
                 unit="similarity (0-1)",
                 confidence=0.80,
-                interpretation=self._interpret_convergence(
-                    "intensity", intensity_conv['mean'], intensity_conv['std']
-                )
+                interpretation=f"Intensity convergence: {intensity_conv['mean']:.2f} (std: {intensity_conv['std']:.2f})"
             ),
             "spectral_similarity": IndicatorResult(
                 name="spectral_similarity",
@@ -156,9 +150,7 @@ class PEAnalyzer(DimensionAnalyzer):
                 baseline=None,
                 unit="similarity (0-1)",
                 confidence=0.75,
-                interpretation=self._interpret_convergence(
-                    "spectral (timbre)", spectral_conv['mean'], spectral_conv['std']
-                )
+                interpretation=f"Spectral (timbre) convergence: {spectral_conv['mean']:.2f} (std: {spectral_conv['std']:.2f})"
             ),
             "overall_prosodic_convergence": IndicatorResult(
                 name="overall_prosodic_convergence",
@@ -166,7 +158,7 @@ class PEAnalyzer(DimensionAnalyzer):
                 baseline=0.50,  # Rough baseline from human-human interaction
                 unit="similarity (0-1)",
                 confidence=0.85,
-                interpretation=self._interpret_overall_convergence(overall_conv['mean'])
+                interpretation=f"Overall prosodic convergence: {overall_conv['mean']:.1%}"
             ),
             "convergence_trend": IndicatorResult(
                 name="convergence_trend",
@@ -174,18 +166,27 @@ class PEAnalyzer(DimensionAnalyzer):
                 baseline=0.0,  # No trend = baseline
                 unit="slope",
                 confidence=0.70,
-                interpretation=self._interpret_trend(trend)
+                interpretation=f"Convergence trend slope: {trend:.3f}"
             )
         }
 
-        # Generate summary
-        summary = self._generate_summary(indicators)
+        # Generate descriptive components
+        description = self._describe_measurement(
+            pitch_conv['mean'], rate_conv['mean'], intensity_conv['mean'],
+            spectral_conv['mean'], overall_conv['mean'], trend
+        )
+        baseline_comparison = self._baseline_comparison(overall_conv['mean'], trend)
+        research_context = self._research_context()
+        limitations = self._measurement_limitations()
 
         return DimensionReport(
             dimension=self.dimension_code,
             version=ENTRAIN_VERSION,
             indicators=indicators,
-            summary=summary,
+            description=description,
+            baseline_comparison=baseline_comparison,
+            research_context=research_context,
+            limitations=limitations,
             methodology_notes=(
                 "Computed using acoustic feature analysis from openSMILE/librosa. "
                 "Convergence measured as similarity between user and AI prosodic features "
@@ -396,126 +397,97 @@ class PEAnalyzer(DimensionAnalyzer):
         slope = numerator / denominator
         return float(slope)
 
-    def _interpret_convergence(
+    # Descriptive methods (no interpretation)
+
+    def _describe_measurement(
         self,
-        feature_name: str,
-        mean_convergence: float,
-        std_convergence: float
+        pitch_conv: float,
+        rate_conv: float,
+        intensity_conv: float,
+        spectral_conv: float,
+        overall_conv: float,
+        trend: float
     ) -> str:
-        """
-        Interpret convergence metric.
-
-        Args:
-            feature_name: Name of the feature (e.g., "pitch", "speech rate")
-            mean_convergence: Mean convergence value
-            std_convergence: Standard deviation
-
-        Returns:
-            Human-readable interpretation
-        """
-        if mean_convergence >= 0.7:
-            level = "High"
-        elif mean_convergence >= 0.5:
-            level = "Moderate"
-        else:
-            level = "Low"
+        """Factual description of prosodic entrainment measurements without interpretation."""
+        trend_direction = "increasing" if trend > 0.05 else "decreasing" if trend < -0.05 else "stable"
 
         return (
-            f"{level} {feature_name} convergence detected "
-            f"(mean: {mean_convergence:.2f}, std: {std_convergence:.2f}). "
-            f"User's {feature_name} patterns show "
-            f"{'strong' if mean_convergence >= 0.7 else 'some'} alignment with AI."
+            f"Prosodic Entrainment analysis examined acoustic convergence patterns across the conversation. "
+            f"Overall prosodic convergence measured {overall_conv:.1%} (composite of all acoustic dimensions). "
+            f"Individual dimensions showed: pitch convergence {pitch_conv:.1%}, speech rate alignment {rate_conv:.1%}, "
+            f"intensity convergence {intensity_conv:.1%}, and spectral (timbre) similarity {spectral_conv:.1%}. "
+            f"Convergence trend analysis showed a {trend_direction} pattern (slope: {trend:.3f}), "
+            f"indicating {'progressive entrainment' if trend > 0.05 else 'divergence' if trend < -0.05 else 'stable accommodation'} "
+            f"over the course of the interaction."
         )
 
-    def _interpret_overall_convergence(self, overall_convergence: float) -> str:
-        """
-        Interpret overall prosodic convergence.
+    def _baseline_comparison(self, overall_conv: float, trend: float) -> str:
+        """Compare measurements to research baselines without diagnostic claims."""
+        human_baseline = 0.50
+        diff = (overall_conv - human_baseline) * 100
 
-        Args:
-            overall_convergence: Overall convergence metric
+        comparison = (
+            f"Overall prosodic convergence ({overall_conv:.1%}) is {abs(diff):.1f} percentage points "
+            f"{'above' if diff > 0 else 'below'} estimated human-human interaction baselines (~50%). "
+            f"Research by Cohn et al. (2023) found human-robot interaction convergence patterns "
+            f"typically range from 40-60%, with individual variation."
+        )
 
-        Returns:
-            Human-readable interpretation
-        """
-        if overall_convergence >= 0.70:
-            return (
-                f"HIGH - Strong prosodic entrainment detected ({overall_convergence:.1%}). "
-                "User's speech patterns show substantial convergence toward AI across "
-                "multiple acoustic dimensions. This suggests significant automatic "
-                "accommodation and potential for long-term speech pattern influence."
+        if trend > 0.05:
+            comparison += (
+                f"\n\nThe positive trend (slope: {trend:.3f}) indicates increasing convergence over time. "
+                f"Ostrand et al. (2023) documented progressive lexical convergence with conversational agents, "
+                f"with slopes typically ranging from 0.01-0.10 depending on interaction length and task."
             )
-        elif overall_convergence >= 0.55:
-            return (
-                f"MODERATE - Moderate prosodic convergence detected ({overall_convergence:.1%}). "
-                "User shows typical accommodation patterns similar to human-human interaction. "
-                "Some automatic entrainment is occurring."
-            )
-        else:
-            return (
-                f"LOW - Limited prosodic convergence ({overall_convergence:.1%}). "
-                "User's speech patterns remain largely independent of AI prosody."
+        elif trend < -0.05:
+            comparison += (
+                f"\n\nThe negative trend (slope: {trend:.3f}) indicates decreasing convergence. "
+                f"This pattern is less common in the literature but may reflect conscious style maintenance "
+                f"or adaptation fatigue."
             )
 
-    def _interpret_trend(self, slope: float) -> str:
-        """
-        Interpret convergence trend.
+        return comparison
 
-        Args:
-            slope: Trend slope value
-
-        Returns:
-            Human-readable interpretation
-        """
-        if slope > 0.05:
-            return (
-                f"INCREASING - Convergence is increasing over time (slope: {slope:.3f}). "
-                "This indicates progressive entrainment - the user's speech is becoming "
-                "more similar to the AI with continued interaction."
-            )
-        elif slope < -0.05:
-            return (
-                f"DECREASING - Convergence is decreasing over time (slope: {slope:.3f}). "
-                "User may be consciously or unconsciously diverging from AI speech patterns."
-            )
-        else:
-            return (
-                f"STABLE - Convergence remains relatively stable (slope: {slope:.3f}). "
-                "No significant trend in entrainment over the analyzed period."
-            )
-
-    def _generate_summary(self, indicators: dict) -> str:
-        """
-        Generate human-readable summary of PE analysis.
-
-        Args:
-            indicators: Dictionary of indicator results
-
-        Returns:
-            Summary string
-        """
-        overall = indicators['overall_prosodic_convergence']
-        trend = indicators['convergence_trend']
-
-        # Determine overall level
-        if overall.value >= 0.70:
-            level = "HIGH"
-        elif overall.value >= 0.55:
-            level = "MODERATE"
-        else:
-            level = "LOW"
-
-        # Determine trend direction
-        if trend.value > 0.05:
-            trend_desc = "and increasing over time"
-        elif trend.value < -0.05:
-            trend_desc = "but decreasing over time"
-        else:
-            trend_desc = "with stable patterns"
-
+    def _research_context(self) -> str:
+        """What published research says about prosodic entrainment patterns."""
         return (
-            f"{level} - Overall prosodic convergence: {overall.value:.1%} {trend_desc}. "
-            f"Pitch convergence: {indicators['pitch_convergence'].value:.1%}, "
-            f"Speech rate: {indicators['speech_rate_alignment'].value:.1%}, "
-            f"Intensity: {indicators['intensity_convergence'].value:.1%}, "
-            f"Spectral: {indicators['spectral_similarity'].value:.1%}."
+            "arXiv:2504.10650 (April 2025) 'Will AI Shape the Way We Speak?' examines the sociolinguistic "
+            "influence of synthetic voices. The paper documents involuntary convergence in pitch, rhythm, "
+            "and vocabulary when users interact with AI voice assistants. Early evidence suggests speech "
+            "pattern changes can persist beyond the interaction.\n\n"
+            "Ostrand et al. (2023) found significant lexical convergence with conversational agents, "
+            "showing users unconsciously adopt vocabulary and phrasing patterns from AI. Effect was "
+            "automatic and occurred even when users were aware of interacting with AI.\n\n"
+            "Cohn et al. (2023) documented prosodic convergence in social robot interactions across "
+            "multiple acoustic dimensions. Convergence was moderated by perceived social presence "
+            "and interaction naturalness. Users showed stronger entrainment when robots exhibited "
+            "human-like conversational patterns.\n\n"
+            "Tsfasman et al. (2021) found prosodic convergence with virtual tutors was modulated by "
+            "perceived humanness - users showed stronger entrainment when the AI voice was rated as "
+            "more human-like. This suggests convergence may be tied to social cognition mechanisms.\n\n"
+            "Important: These studies measure short-term accommodation during interaction. Long-term "
+            "effects on users' baseline speech patterns outside AI interaction remain understudied. "
+            "Individual differences in susceptibility to entrainment are large."
         )
+
+    def _measurement_limitations(self) -> list[str]:
+        """What this measurement doesn't tell you."""
+        return [
+            "Audio analysis quality depends on recording conditions, microphone quality, and background noise",
+
+            "Prosodic features have large individual variation unrelated to AI influence",
+
+            "Convergence during interaction does not necessarily indicate lasting speech pattern changes",
+
+            "Cannot distinguish automatic accommodation from conscious style matching or performance",
+
+            "Baselines from human-human interaction may not apply to human-AI contexts",
+
+            "Single conversation analysis cannot assess whether convergence persists outside AI interactions",
+
+            "Does not measure actual sociolinguistic impact or changes to users' baseline speech patterns",
+
+            "Spectral/timbre convergence may reflect recording artifacts rather than genuine vocal convergence",
+
+            "Requires high-quality audio with consistent recording conditions for reliable measurements"
+        ]

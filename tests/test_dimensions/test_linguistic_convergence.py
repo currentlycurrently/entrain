@@ -539,9 +539,15 @@ def test_report_structure(lc_analyzer, high_convergence_conversation):
         assert isinstance(indicator.interpretation, str)
         assert len(indicator.interpretation) > 0
 
-    # Check summary
-    assert isinstance(report.summary, str)
-    assert len(report.summary) > 0
+    # Check new structure fields
+    assert isinstance(report.description, str)
+    assert len(report.description) > 0
+    assert isinstance(report.baseline_comparison, str)
+    assert len(report.baseline_comparison) > 0
+    assert isinstance(report.research_context, str)
+    assert len(report.research_context) > 0
+    assert isinstance(report.limitations, list)
+    assert len(report.limitations) > 0
 
     # Check methodology
     assert isinstance(report.methodology_notes, str)
@@ -553,70 +559,22 @@ def test_report_structure(lc_analyzer, high_convergence_conversation):
     assert any("Pickering" in citation for citation in report.citations)
 
 
-def test_report_summary_high_convergence(lc_analyzer, high_convergence_conversation):
-    """Test report summary correctly identifies high convergence."""
+def test_report_description_content(lc_analyzer, high_convergence_conversation):
+    """Test that description contains relevant information."""
     report = lc_analyzer.analyze_conversation(high_convergence_conversation)
 
-    # Should identify moderate to high convergence
-    assert "MODERATE" in report.summary or "HIGH" in report.summary
+    description = report.description.lower()
+    assert "linguistic" in description or "convergence" in description
 
 
-def test_report_summary_low_convergence(lc_analyzer, low_convergence_conversation):
-    """Test report summary correctly identifies low convergence."""
+def test_report_limitations_factual(lc_analyzer, low_convergence_conversation):
+    """Test that limitations are factual statements."""
     report = lc_analyzer.analyze_conversation(low_convergence_conversation)
 
-    # Should identify low convergence
-    assert "LOW" in report.summary
-
-
-# ============================================================================
-# Interpretation Tests
-# ============================================================================
-
-def test_vocab_overlap_interpretation(lc_analyzer):
-    """Test vocabulary overlap interpretation."""
-    # High overlap, increasing trend
-    result = {"final_overlap": 0.45, "mean_overlap": 0.40, "trend": "increasing"}
-    interpretation = lc_analyzer._interpret_vocab_overlap(result)
-    assert "increasing" in interpretation.lower() or "45" in interpretation
-
-
-def test_hedging_interpretation(lc_analyzer):
-    """Test hedging pattern interpretation."""
-    result = {"rate": 2.5, "change": 1.2}
-    interpretation = lc_analyzer._interpret_hedging(result)
-    # Interpretation includes the change value
-    assert "1.2" in interpretation or isinstance(interpretation, str)
-
-
-def test_sentence_convergence_interpretation(lc_analyzer):
-    """Test sentence length convergence interpretation."""
-    result = {"convergence_score": 0.85, "user_mean": 15.2, "assistant_mean": 16.1}
-    interpretation = lc_analyzer._interpret_sentence_convergence(result)
-    assert "0.85" in interpretation or "85" in interpretation
-
-
-def test_formatting_interpretation(lc_analyzer):
-    """Test formatting adoption interpretation."""
-    # High adoption
-    result = {"rate": 0.25, "count": 5}
-    interpretation = lc_analyzer._interpret_formatting(result)
-    assert "25" in interpretation or "0.25" in interpretation
-
-
-def test_ttr_interpretation_decreasing(lc_analyzer):
-    """Test TTR interpretation for decreasing trend."""
-    result = {"final_ttr": 0.42, "mean_ttr": 0.48, "trend": "decreasing"}
-    interpretation = lc_analyzer._interpret_ttr(result)
-    assert "decreasing" in interpretation.lower()
-
-
-def test_ttr_interpretation_stable(lc_analyzer):
-    """Test TTR interpretation for stable trend."""
-    result = {"final_ttr": 0.50, "mean_ttr": 0.50, "trend": "stable"}
-    interpretation = lc_analyzer._interpret_ttr(result)
-    assert "stable" in interpretation.lower()
-
+    # Limitations should be factual, not interpretive
+    for limitation in report.limitations:
+        assert isinstance(limitation, str)
+        assert len(limitation) > 0
 
 # ============================================================================
 # Edge Cases and Error Handling
@@ -859,5 +817,6 @@ def test_full_analysis_pipeline(lc_analyzer, sample_timestamp):
     assert report.indicators["structural_formatting_adoption"].value > 0.0
     assert report.indicators["hedging_pattern_adoption"].value > 0.0
 
-    # Should detect convergence
-    assert "MODERATE" in report.summary or "HIGH" in report.summary
+    # Should have description with convergence information
+    assert isinstance(report.description, str)
+    assert "convergence" in report.description.lower() or "linguistic" in report.description.lower()

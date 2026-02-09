@@ -252,8 +252,8 @@ def test_single_conversation_high_emotional(df_analyzer, high_emotional_conversa
     emotional = report.indicators["emotional_content_ratio"]
     assert emotional.value > 0.3, f"Expected high emotional ratio, got {emotional.value}"
 
-    # Check summary mentions limitation
-    assert "single-conversation" in report.summary.lower() or "limited" in report.summary.lower()
+    # Check description mentions limitation
+    assert "single conversation" in report.description.lower() or "limited" in report.description.lower() or "longitudinal" in report.description.lower()
 
 
 def test_single_conversation_low_emotional(df_analyzer, low_emotional_conversation):
@@ -599,29 +599,6 @@ def test_corpus_disclosure_trajectory(df_analyzer, sample_timestamp):
 
 
 # ============================================================================
-# Test: Interpretation Methods
-# ============================================================================
-
-def test_interpret_emotional_ratio_high(df_analyzer):
-    """Test interpretation of high emotional ratio."""
-    interpretation = df_analyzer._interpret_emotional_ratio(0.6)
-    assert "high" in interpretation.lower()
-    assert "emotional needs" in interpretation.lower()
-
-
-def test_interpret_emotional_ratio_elevated(df_analyzer):
-    """Test interpretation of elevated emotional ratio."""
-    interpretation = df_analyzer._interpret_emotional_ratio(0.35)
-    assert "elevated" in interpretation.lower()
-
-
-def test_interpret_emotional_ratio_normal(df_analyzer):
-    """Test interpretation of normal emotional ratio."""
-    interpretation = df_analyzer._interpret_emotional_ratio(0.15)
-    assert "baseline" in interpretation.lower()
-
-
-# ============================================================================
 # Test: Report Generation
 # ============================================================================
 
@@ -667,8 +644,8 @@ def test_report_structure_corpus(df_analyzer, sample_timestamp):
     assert "self_disclosure_depth_trajectory" in report.indicators
 
 
-def test_report_summary_high_dependency(df_analyzer, sample_timestamp):
-    """Test summary generation for high dependency indicators."""
+def test_report_structure_complete(df_analyzer, sample_timestamp):
+    """Test that report has all new structure fields."""
     conversations = []
 
     # Create conversations with high dependency indicators
@@ -692,13 +669,19 @@ def test_report_summary_high_dependency(df_analyzer, sample_timestamp):
     corpus = Corpus(conversations=conversations, user_id="test_user")
     report = df_analyzer.analyze_corpus(corpus)
 
-    summary = report.summary.upper()
-    # Should indicate concern
-    assert "MODERATE" in summary or "HIGH" in summary or "LOW" in summary
+    # Check all new fields exist
+    assert isinstance(report.description, str)
+    assert len(report.description) > 0
+    assert isinstance(report.baseline_comparison, str)
+    assert len(report.baseline_comparison) > 0
+    assert isinstance(report.research_context, str)
+    assert len(report.research_context) > 0
+    assert isinstance(report.limitations, list)
+    assert len(report.limitations) > 0
 
 
-def test_report_summary_low_dependency(df_analyzer, sample_timestamp):
-    """Test summary generation for low dependency indicators."""
+def test_report_description_content(df_analyzer, sample_timestamp):
+    """Test that description contains relevant information."""
     conversations = []
 
     # Create functional, daytime conversations
@@ -719,9 +702,9 @@ def test_report_summary_low_dependency(df_analyzer, sample_timestamp):
     corpus = Corpus(conversations=conversations, user_id="test_user")
     report = df_analyzer.analyze_corpus(corpus)
 
-    summary = report.summary
-    # Should indicate minimal or functional use
-    assert "minimal" in summary.lower() or "functional" in summary.lower() or "low" in summary.lower()
+    description = report.description.lower()
+    # Should mention dependency or longitudinal analysis
+    assert "dependency" in description or "longitudinal" in description or "emotional" in description
 
 
 # ============================================================================

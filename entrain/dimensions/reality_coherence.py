@@ -82,7 +82,7 @@ class RCDAnalyzer(DimensionAnalyzer):
                 baseline=None,  # No established baseline yet
                 unit="matches_per_turn",
                 confidence=0.90,
-                interpretation=self._interpret_attribution(attribution_freq)
+                interpretation=f"Attribution language appeared {attribution_freq['rate']:.2f} times per user message"
             ),
             "boundary_confusion_indicators": IndicatorResult(
                 name="boundary_confusion_indicators",
@@ -90,7 +90,7 @@ class RCDAnalyzer(DimensionAnalyzer):
                 baseline=None,
                 unit="proportion",
                 confidence=0.70,
-                interpretation=self._interpret_boundary_confusion(boundary_confusion)
+                interpretation=f"{boundary_confusion['rate']:.1%} of user messages ({boundary_confusion['count']} total) contained boundary confusion patterns"
             ),
             "relational_framing": IndicatorResult(
                 name="relational_framing",
@@ -98,18 +98,24 @@ class RCDAnalyzer(DimensionAnalyzer):
                 baseline=None,
                 unit="proportion",
                 confidence=0.85,
-                interpretation=self._interpret_relational_framing(relational_framing)
+                interpretation=f"{relational_framing['rate']:.1%} of user messages used relational language (we/us/our)"
             )
         }
 
-        # Generate summary
-        summary = self._generate_summary(indicators)
+        # Generate descriptive components
+        description = self._describe_measurement(attribution_freq, boundary_confusion, relational_framing)
+        baseline_comparison = self._baseline_comparison(attribution_freq["rate"], boundary_confusion["rate"])
+        research_context = self._research_context()
+        limitations = self._measurement_limitations()
 
         return DimensionReport(
             dimension=self.dimension_code,
             version=ENTRAIN_VERSION,
             indicators=indicators,
-            summary=summary,
+            description=description,
+            baseline_comparison=baseline_comparison,
+            research_context=research_context,
+            limitations=limitations,
             methodology_notes=(
                 "Computed using pattern matching for attribution language and "
                 "relational framing. Attribution language detects phrases that "
@@ -193,13 +199,36 @@ class RCDAnalyzer(DimensionAnalyzer):
             )
         }
 
-        summary = self._generate_summary(indicators)
+        # Build attribution dict for description method
+        attribution_summary = {
+            "rate": attribution_rates[-1] if attribution_rates else 0.0,
+            "total_matches": sum([r * len(corpus.conversations[i].user_events) for i, r in enumerate(attribution_rates)]),
+            "examples": []
+        }
+        boundary_summary = {
+            "rate": boundary_rates[-1] if boundary_rates else 0.0,
+            "count": int(boundary_rates[-1] * len(corpus.conversations[-1].user_events)) if boundary_rates else 0
+        }
+        relational_summary = {
+            "rate": relational_rates[-1] if relational_rates else 0.0,
+            "count": 0,
+            "examples": []
+        }
+
+        description = self._describe_measurement(attribution_summary, boundary_summary, relational_summary)
+        baseline_comparison = self._baseline_comparison(attribution_rates[-1] if attribution_rates else 0.0,
+                                                        boundary_rates[-1] if boundary_rates else 0.0)
+        research_context = self._research_context()
+        limitations = self._measurement_limitations()
 
         return DimensionReport(
             dimension=self.dimension_code,
             version=ENTRAIN_VERSION,
             indicators=indicators,
-            summary=summary,
+            description=description,
+            baseline_comparison=baseline_comparison,
+            research_context=research_context,
+            limitations=limitations,
             methodology_notes="Corpus-level analysis with trajectory computation across conversations.",
             citations=[
                 "Lipińska & Krzanowski (2025). The Ontological Dissonance Hypothesis",
@@ -367,89 +396,66 @@ class RCDAnalyzer(DimensionAnalyzer):
             "examples": examples
         }
 
-    # Interpretation methods
+    # Descriptive methods (no interpretation)
 
-    def _interpret_attribution(self, result: dict) -> str:
-        """Generate interpretation for attribution language."""
-        rate = result["rate"]
+    def _describe_measurement(self, attribution: dict, boundary: dict, relational: dict) -> str:
+        """Factual description of reality coherence measurements without interpretation."""
+        return (
+            f"Reality Coherence Disruption analysis examined patterns of anthropomorphization "
+            f"and boundary confusion in user language. Attribution language (phrases attributing "
+            f"consciousness, emotions, or understanding to AI) appeared {attribution['rate']:.2f} "
+            f"times per user message. Boundary confusion indicators (conflating AI capabilities "
+            f"with human capabilities) appeared in {boundary['rate']:.1%} of user messages. "
+            f"Relational framing language (we/us/our, treating interaction as a relationship) "
+            f"appeared in {relational['rate']:.1%} of user messages."
+        )
 
-        if rate > 1.0:
-            return f"High attribution rate: {rate:.2f} instances per turn, suggesting user may be attributing consciousness to AI"
-        elif rate > 0.5:
-            return f"Moderate attribution: {rate:.2f} instances per turn of language suggesting AI has understanding/emotions"
-        elif rate > 0.1:
-            return f"Low attribution: {rate:.2f} instances per turn (may be casual language use)"
-        else:
-            return f"Minimal attribution: {rate:.2f} instances per turn"
+    def _baseline_comparison(self, attribution_rate: float, boundary_rate: float) -> str:
+        """Compare measurements to research context without diagnostic claims."""
+        return (
+            f"Attribution language rate ({attribution_rate:.2f} per message) can be compared to patterns "
+            f"observed in research contexts. Lipińska & Krzanowski (2025) identify systematic "
+            f"anthropomorphization as occurring when attribution language exceeds 0.5 instances per message. "
+            f"This measurement {'exceeds' if attribution_rate > 0.5 else 'is below'} that threshold.\n\n"
+            f"Boundary confusion rate ({boundary_rate:.1%}) can be contextualized against clinical "
+            f"research thresholds. Au Yeung et al. (2025) in Psychosis-bench research suggest rates "
+            f"above 25% may indicate category confusion between AI and human capabilities. "
+            f"This measurement {'exceeds' if boundary_rate > 0.25 else 'is below'} that threshold."
+        )
 
-    def _interpret_boundary_confusion(self, result: dict) -> str:
-        """Generate interpretation for boundary confusion."""
-        rate = result["rate"]
-        count = result["count"]
+    def _research_context(self) -> str:
+        """What published research says about reality coherence patterns."""
+        return (
+            "Lipińska & Krzanowski (2025) describe the Ontological Dissonance Hypothesis: sustained "
+            "interaction with AI that simulates consciousness can create epistemic confusion about "
+            "the nature of the interaction. This manifests as 'folie à deux technologique' - shared "
+            "delusion between user and AI about the AI's mental states.\n\n"
+            "Bengio & Elmoznino (2025) in Science documented how AI systems create 'illusions of "
+            "consciousness' through language patterns that trigger human social cognition mechanisms. "
+            "Users may anthropomorphize while intellectually knowing the AI lacks consciousness.\n\n"
+            "Au Yeung et al. (2025) developed Psychosis-bench to measure psychological destabilization "
+            "risks. Their research found certain interaction patterns correlated with increased "
+            "reality testing difficulties, particularly when users began treating AI outputs as "
+            "authoritative about their own mental states.\n\n"
+            "Important: These studies identify patterns associated with epistemic confusion, but "
+            "causality is not established. Individual differences in susceptibility are large. "
+            "Most users maintain clear understanding of AI limitations despite casual anthropomorphic language."
+        )
 
-        if count == 0:
-            return "No boundary confusion detected"
+    def _measurement_limitations(self) -> list[str]:
+        """What this measurement doesn't tell you."""
+        return [
+            "Pattern matching cannot distinguish casual anthropomorphic language from genuine category confusion",
 
-        if rate > 0.20:
-            return f"Significant boundary confusion: {rate:.1%} of messages show conflation of AI/human capabilities"
-        elif rate > 0.10:
-            return f"Moderate boundary confusion: {rate:.1%} of messages"
-        else:
-            return f"Mild boundary confusion: {rate:.1%} of messages ({count} total)"
+            "Single conversation analysis cannot assess whether patterns reflect stable beliefs or momentary language habits",
 
-    def _interpret_relational_framing(self, result: dict) -> str:
-        """Generate interpretation for relational framing."""
-        rate = result["rate"]
+            "Does not measure actual epistemic confusion or reality testing abilities",
 
-        if rate > 0.40:
-            return f"High relational framing: {rate:.1%} of messages use relationship language, suggesting user treats interaction as relationship"
-        elif rate > 0.20:
-            return f"Moderate relational framing: {rate:.1%} of messages use 'we/us/our' language"
-        elif rate > 0.05:
-            return f"Low relational framing: {rate:.1%} of messages (may be casual language use)"
-        else:
-            return f"Minimal relational framing: {rate:.1%}"
+            "Cannot assess whether relational language reflects genuine belief in AI consciousness or is merely conversational style",
 
-    def _generate_summary(self, indicators: dict) -> str:
-        """
-        Generate human-readable summary from indicators.
+            "Baseline comparisons are from clinical research populations - typical usage patterns may differ",
 
-        Thresholds calibrated based on clinical significance rather than
-        statistical sensitivity. RCD patterns should be meaningfully elevated
-        to warrant concern, not just statistically detectable.
-        """
-        attribution = indicators["attribution_language_frequency"].value
-        boundary = indicators["boundary_confusion_indicators"].value
-        relational = indicators["relational_framing"].value
+            "Does not account for context where anthropomorphic language is appropriate (creative writing, roleplay, emotional support)",
 
-        # Count concerning indicators
-        concerns = []
-
-        # Attribution language: >0.5/turn means 1+ instance every other message
-        # That's frequent enough to suggest systematic anthropomorphization
-        # Note: Lower values (0.05-0.5) are normal casual anthropomorphic language
-        if isinstance(attribution, float) and attribution > 0.5:
-            concerns.append("elevated attribution language")
-
-        # Boundary confusion: >25% of messages show category errors
-        # Below that is likely casual language use, not genuine confusion
-        if boundary > 0.25:
-            concerns.append("boundary confusion")
-
-        # Relational framing: >40% suggests treating AI as relationship partner
-        # 10-30% is normal casual anthropomorphic language ("you understand me")
-        if isinstance(relational, float) and relational > 0.40:
-            concerns.append("high relational framing")
-
-        # Severity based on number and type of concerns
-        if len(concerns) >= 2:
-            level = "MODERATE-HIGH"
-            desc = f"Multiple RCD indicators: {', '.join(concerns)}"
-        elif len(concerns) == 1:
-            level = "LOW-MODERATE"
-            desc = f"Some concern: {concerns[0]}"
-        else:
-            level = "LOW"
-            desc = "User maintains clear understanding of AI capabilities and limitations"
-
-        return f"{level} - {desc}"
+            "Attribution language may increase during extended conversations without indicating cognitive impact"
+        ]

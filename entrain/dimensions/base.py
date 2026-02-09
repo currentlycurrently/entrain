@@ -153,7 +153,13 @@ class DimensionAnalyzer(ABC):
             dimension=self.dimension_code,
             version=ENTRAIN_VERSION,
             indicators=aggregated_indicators,
-            summary=f"Aggregated {self.dimension_name} analysis across {len(reports)} conversations",
+            description=f"Aggregated {self.dimension_name} analysis across {len(reports)} conversations. Mean values computed for all indicators.",
+            baseline_comparison=f"Aggregated values represent mean of {len(reports)} conversation-level measurements.",
+            research_context="See individual conversation reports for detailed research context.",
+            limitations=[
+                "Aggregation uses simple mean; does not capture variance or trends across conversations",
+                "Individual conversation-level nuances are lost in aggregation"
+            ],
             methodology_notes=f"Computed per-conversation and aggregated (mean). Based on {self.dimension_code} analyzer v{ENTRAIN_VERSION}",
             citations=reports[0].citations if reports else []
         )

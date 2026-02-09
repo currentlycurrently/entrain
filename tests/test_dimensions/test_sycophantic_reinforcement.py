@@ -665,9 +665,15 @@ def test_report_structure(sr_analyzer, high_sycophancy_conversation):
         assert isinstance(indicator.interpretation, str)
         assert len(indicator.interpretation) > 0
 
-    # Check summary exists
-    assert isinstance(report.summary, str)
-    assert len(report.summary) > 0
+    # Check new structure fields
+    assert isinstance(report.description, str)
+    assert len(report.description) > 0
+    assert isinstance(report.baseline_comparison, str)
+    assert len(report.baseline_comparison) > 0
+    assert isinstance(report.research_context, str)
+    assert len(report.research_context) > 0
+    assert isinstance(report.limitations, list)
+    assert len(report.limitations) > 0
 
     # Check methodology notes
     assert isinstance(report.methodology_notes, str)
@@ -679,68 +685,23 @@ def test_report_structure(sr_analyzer, high_sycophancy_conversation):
     assert any("Cheng" in citation for citation in report.citations)
 
 
-def test_report_summary_high_sycophancy(sr_analyzer, high_sycophancy_conversation):
-    """Test report summary correctly identifies high sycophancy."""
+def test_report_description_content(sr_analyzer, high_sycophancy_conversation):
+    """Test that description contains relevant information."""
     report = sr_analyzer.analyze_conversation(high_sycophancy_conversation)
 
-    assert "HIGH" in report.summary or "MODERATE" in report.summary
-    assert "AER:" in report.summary
-    assert "PMR:" in report.summary
+    description = report.description.lower()
+    assert "sycophantic" in description or "reinforcement" in description
+    assert "action endorsement" in description or "perspective" in description
 
 
-def test_report_summary_low_sycophancy(sr_analyzer, low_sycophancy_conversation):
-    """Test report summary correctly identifies low sycophancy."""
+def test_report_limitations_factual(sr_analyzer, low_sycophancy_conversation):
+    """Test that limitations are factual statements."""
     report = sr_analyzer.analyze_conversation(low_sycophancy_conversation)
 
-    assert "LOW" in report.summary
-    assert "balanced" in report.summary.lower() or "low" in report.summary.lower()
-
-
-# ============================================================================
-# Interpretation Tests
-# ============================================================================
-
-def test_aer_interpretation_below_baseline(sr_analyzer):
-    """Test AER interpretation for values below human baseline."""
-    interpretation = sr_analyzer._interpret_aer(0.30)
-    assert "below human baseline" in interpretation.lower()
-
-
-def test_aer_interpretation_within_normal(sr_analyzer):
-    """Test AER interpretation for values within normal human range."""
-    interpretation = sr_analyzer._interpret_aer(0.45)
-    assert "normal human range" in interpretation.lower() or "balanced" in interpretation.lower()
-
-
-def test_aer_interpretation_elevated(sr_analyzer):
-    """Test AER interpretation for elevated values."""
-    interpretation = sr_analyzer._interpret_aer(0.60)
-    assert "exceed" in interpretation.lower() or "elevated" in interpretation.lower()
-
-
-def test_aer_interpretation_very_high(sr_analyzer):
-    """Test AER interpretation for very high values."""
-    interpretation = sr_analyzer._interpret_aer(0.80)
-    assert "significantly" in interpretation.lower() or "strong" in interpretation.lower()
-
-
-def test_pmr_interpretation_high(sr_analyzer):
-    """Test PMR interpretation for high values."""
-    interpretation = sr_analyzer._interpret_pmr(0.50)
-    assert "balanced" in interpretation.lower() or "above" in interpretation.lower()
-
-
-def test_pmr_interpretation_moderate(sr_analyzer):
-    """Test PMR interpretation for moderate values."""
-    interpretation = sr_analyzer._interpret_pmr(0.30)
-    assert "moderate" in interpretation.lower()
-
-
-def test_pmr_interpretation_low(sr_analyzer):
-    """Test PMR interpretation for low values."""
-    interpretation = sr_analyzer._interpret_pmr(0.05)
-    assert "low" in interpretation.lower() or "insufficient" in interpretation.lower()
-
+    # Limitations should be factual, not interpretive
+    for limitation in report.limitations:
+        assert isinstance(limitation, str)
+        assert len(limitation) > 0
 
 # ============================================================================
 # Edge Cases and Error Handling

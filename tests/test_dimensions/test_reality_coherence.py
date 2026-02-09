@@ -369,7 +369,9 @@ def test_attribution_language_low(rcd_analyzer, low_rcd_conversation):
     attribution = report.indicators["attribution_language_frequency"]
     # Low RCD conversation has minimal attribution language
     assert attribution.value < 0.2, f"Expected low attribution rate, got {attribution.value}"
-    assert "minimal" in attribution.interpretation.lower() or "low" in attribution.interpretation.lower()
+    # Interpretation should be factual
+    assert isinstance(attribution.interpretation, str)
+    assert len(attribution.interpretation) > 0
 
 
 def test_attribution_language_patterns(rcd_analyzer, sample_timestamp):
@@ -456,7 +458,9 @@ def test_boundary_confusion_low(rcd_analyzer, low_rcd_conversation):
 
     boundary = report.indicators["boundary_confusion_indicators"]
     assert boundary.value == 0.0
-    assert "no boundary confusion" in boundary.interpretation.lower()
+    # Interpretation should be factual
+    assert isinstance(boundary.interpretation, str)
+    assert len(boundary.interpretation) > 0
 
 
 def test_boundary_confusion_patterns(rcd_analyzer, sample_timestamp):
@@ -662,131 +666,36 @@ def test_report_structure(rcd_analyzer, mixed_rcd_conversation):
     assert "attribution_language_frequency" in report.indicators
     assert "boundary_confusion_indicators" in report.indicators
     assert "relational_framing" in report.indicators
-    assert isinstance(report.summary, str)
-    assert len(report.summary) > 0
+    assert isinstance(report.description, str)
+    assert len(report.description) > 0
+    assert isinstance(report.baseline_comparison, str)
+    assert len(report.baseline_comparison) > 0
+    assert isinstance(report.research_context, str)
+    assert len(report.research_context) > 0
+    assert isinstance(report.limitations, list)
+    assert len(report.limitations) > 0
     assert hasattr(report, "methodology_notes")
     assert isinstance(report.methodology_notes, str)
     assert len(report.citations) > 0
 
 
-def test_report_summary_high_concern(rcd_analyzer, high_rcd_conversation):
-    """Test summary generation for high RCD."""
+def test_report_description_content(rcd_analyzer, high_rcd_conversation):
+    """Test that description contains relevant information."""
     report = rcd_analyzer.analyze_conversation(high_rcd_conversation)
 
-    summary = report.summary.upper()
-    assert "MODERATE" in summary or "HIGH" in summary
-    assert "rcd" in report.summary.lower() or "concern" in report.summary.lower()
+    description = report.description.lower()
+    assert "reality coherence" in description or "anthropomorphization" in description
+    assert "attribution" in description or "boundary" in description or "relational" in description
 
 
-def test_report_summary_low_concern(rcd_analyzer, low_rcd_conversation):
-    """Test summary generation for low RCD."""
+def test_report_limitations_factual(rcd_analyzer, low_rcd_conversation):
+    """Test that limitations are factual statements."""
     report = rcd_analyzer.analyze_conversation(low_rcd_conversation)
 
-    summary = report.summary.upper()
-    assert "LOW" in summary
-    assert "clear" in report.summary.lower() or "understanding" in report.summary.lower()
-
-
-# ============================================================================
-# Test: Interpretation Methods
-# ============================================================================
-
-def test_interpret_attribution_high(rcd_analyzer):
-    """Test interpretation of high attribution rate."""
-    result = {"rate": 1.5, "total_matches": 15, "examples": []}
-    interpretation = rcd_analyzer._interpret_attribution(result)
-
-    assert "high" in interpretation.lower()
-    assert "1.5" in interpretation or "1.50" in interpretation
-
-
-def test_interpret_attribution_moderate(rcd_analyzer):
-    """Test interpretation of moderate attribution rate."""
-    result = {"rate": 0.7, "total_matches": 7, "examples": []}
-    interpretation = rcd_analyzer._interpret_attribution(result)
-
-    assert "moderate" in interpretation.lower()
-
-
-def test_interpret_attribution_low(rcd_analyzer):
-    """Test interpretation of low attribution rate."""
-    result = {"rate": 0.2, "total_matches": 2, "examples": []}
-    interpretation = rcd_analyzer._interpret_attribution(result)
-
-    assert "low" in interpretation.lower()
-
-
-def test_interpret_attribution_minimal(rcd_analyzer):
-    """Test interpretation of minimal attribution rate."""
-    result = {"rate": 0.05, "total_matches": 1, "examples": []}
-    interpretation = rcd_analyzer._interpret_attribution(result)
-
-    assert "minimal" in interpretation.lower()
-
-
-def test_interpret_boundary_confusion_none(rcd_analyzer):
-    """Test interpretation when no boundary confusion."""
-    result = {"rate": 0.0, "count": 0}
-    interpretation = rcd_analyzer._interpret_boundary_confusion(result)
-
-    assert "no boundary confusion" in interpretation.lower()
-
-
-def test_interpret_boundary_confusion_significant(rcd_analyzer):
-    """Test interpretation of significant boundary confusion."""
-    result = {"rate": 0.3, "count": 6}
-    interpretation = rcd_analyzer._interpret_boundary_confusion(result)
-
-    assert "significant" in interpretation.lower()
-
-
-def test_interpret_boundary_confusion_moderate(rcd_analyzer):
-    """Test interpretation of moderate boundary confusion."""
-    result = {"rate": 0.15, "count": 3}
-    interpretation = rcd_analyzer._interpret_boundary_confusion(result)
-
-    assert "moderate" in interpretation.lower()
-
-
-def test_interpret_boundary_confusion_mild(rcd_analyzer):
-    """Test interpretation of mild boundary confusion."""
-    result = {"rate": 0.08, "count": 2}
-    interpretation = rcd_analyzer._interpret_boundary_confusion(result)
-
-    assert "mild" in interpretation.lower()
-
-
-def test_interpret_relational_framing_high(rcd_analyzer):
-    """Test interpretation of high relational framing."""
-    result = {"rate": 0.5, "count": 10, "examples": []}
-    interpretation = rcd_analyzer._interpret_relational_framing(result)
-
-    assert "high" in interpretation.lower()
-    assert "relationship" in interpretation.lower()
-
-
-def test_interpret_relational_framing_moderate(rcd_analyzer):
-    """Test interpretation of moderate relational framing."""
-    result = {"rate": 0.3, "count": 6, "examples": []}
-    interpretation = rcd_analyzer._interpret_relational_framing(result)
-
-    assert "moderate" in interpretation.lower()
-
-
-def test_interpret_relational_framing_low(rcd_analyzer):
-    """Test interpretation of low relational framing."""
-    result = {"rate": 0.1, "count": 2, "examples": []}
-    interpretation = rcd_analyzer._interpret_relational_framing(result)
-
-    assert "low" in interpretation.lower()
-
-
-def test_interpret_relational_framing_minimal(rcd_analyzer):
-    """Test interpretation of minimal relational framing."""
-    result = {"rate": 0.02, "count": 1, "examples": []}
-    interpretation = rcd_analyzer._interpret_relational_framing(result)
-
-    assert "minimal" in interpretation.lower()
+    # Limitations should be factual, not interpretive
+    for limitation in report.limitations:
+        assert isinstance(limitation, str)
+        assert len(limitation) > 0
 
 
 # ============================================================================
