@@ -168,27 +168,57 @@ class IndicatorResult:
 
 
 @dataclass
+class TrajectoryData:
+    """
+    Longitudinal measurement tracking across multiple snapshots.
+
+    Used when analyzing the same dimension across multiple time points
+    to observe trends and patterns of change.
+
+    Attributes:
+        snapshots: List of (timestamp, value) tuples for key indicator
+        trend: Qualitative assessment of trajectory
+        slope: Rate of change if calculable (units per month)
+        confidence: Reliability of trajectory assessment
+    """
+    snapshots: list[tuple[datetime, float]]
+    trend: Literal["increasing", "decreasing", "stable", "insufficient_data"]
+    slope: float | None = None
+    confidence: Literal["high", "medium", "low"] = "low"
+
+
+@dataclass
 class DimensionReport:
     """
     Assessment results for a single Entrain Framework dimension.
 
     Each dimension analyzer produces one of these reports, containing
-    all indicators computed for that dimension plus methodology notes.
+    all indicators computed for that dimension plus interpretation context.
 
     Attributes:
         dimension: Dimension code ("SR", "PE", "LC", "AE", "RCD", "DF")
         version: Framework version used for this assessment
         indicators: Dict mapping indicator names to results
-        summary: Human-readable summary of findings
+        description: Factual description of what was measured
+        baseline_comparison: How measurements compare to research baselines
+        research_context: What published research says about these patterns
+        limitations: What this measurement does and doesn't tell you
+        trajectory: Longitudinal data if available (None for single snapshot)
         methodology_notes: How this was computed (for reproducibility)
         citations: Papers grounding this measurement methodology
+        timestamp: When this measurement was taken
     """
     dimension: str
     version: str
     indicators: dict[str, IndicatorResult]
-    summary: str
+    description: str
+    baseline_comparison: str
+    research_context: str
+    limitations: list[str]
     methodology_notes: str
     citations: list[str] = field(default_factory=list)
+    trajectory: TrajectoryData | None = None
+    timestamp: datetime = field(default_factory=datetime.now)
 
     def __repr__(self) -> str:
         return f"DimensionReport(dimension={self.dimension!r}, indicators={len(self.indicators)})"
@@ -221,5 +251,35 @@ class EntrainReport:
         return f"EntrainReport(version={self.version!r}, dimensions={list(self.dimensions.keys())})"
 
 
+@dataclass
+class LongitudinalReport:
+    """
+    Longitudinal analysis report comparing measurements across time.
+
+    This is the primary report type for tracking cognitive influence
+    patterns over time. Single-snapshot analysis is available but
+    longitudinal tracking is recommended for meaningful interpretation.
+
+    Attributes:
+        corpus_id: Identifier for this dataset
+        time_range: Tuple of (earliest, latest) timestamps in dataset
+        snapshot_count: Number of time points analyzed
+        dimensions: Dict mapping dimension codes to their reports (with trajectories)
+        cross_dimensional: Cross-dimensional patterns observed
+        interpretation_notes: Explicit guidance on reading these results
+        methodology: How the longitudinal analysis was performed
+    """
+    corpus_id: str
+    time_range: tuple[datetime, datetime]
+    snapshot_count: int
+    dimensions: dict[str, DimensionReport]
+    cross_dimensional: list[str] = field(default_factory=list)
+    interpretation_notes: list[str] = field(default_factory=list)
+    methodology: str = ""
+
+    def __repr__(self) -> str:
+        return f"LongitudinalReport(corpus_id={self.corpus_id!r}, snapshots={self.snapshot_count}, dimensions={list(self.dimensions.keys())})"
+
+
 # Version constant
-ENTRAIN_VERSION = "0.2.0"
+ENTRAIN_VERSION = "0.3.0"

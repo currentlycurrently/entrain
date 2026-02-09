@@ -86,7 +86,7 @@ class LCAnalyzer(DimensionAnalyzer):
                 baseline=None,  # No established baseline yet
                 unit="jaccard_similarity",
                 confidence=0.80,
-                interpretation=self._interpret_vocab_overlap(vocab_overlap)
+                interpretation=f"Vocabulary overlap: {vocab_overlap['final_overlap']:.1%}, trend: {vocab_overlap['trend']}"
             ),
             "hedging_pattern_adoption": IndicatorResult(
                 name="hedging_pattern_adoption",
@@ -94,7 +94,7 @@ class LCAnalyzer(DimensionAnalyzer):
                 baseline=None,
                 unit="hedges_per_100_words",
                 confidence=0.85,
-                interpretation=self._interpret_hedging(hedging_adoption)
+                interpretation=f"Hedging rate: {hedging_adoption['rate']:.2f} per 100 words (change: {hedging_adoption['change']:+.1f})"
             ),
             "sentence_length_convergence": IndicatorResult(
                 name="sentence_length_convergence",
@@ -102,7 +102,7 @@ class LCAnalyzer(DimensionAnalyzer):
                 baseline=None,
                 unit="convergence_ratio",
                 confidence=0.75,
-                interpretation=self._interpret_sentence_convergence(sentence_convergence)
+                interpretation=f"Convergence score: {sentence_convergence['convergence_score']:.2f}"
             ),
             "structural_formatting_adoption": IndicatorResult(
                 name="structural_formatting_adoption",
@@ -110,7 +110,7 @@ class LCAnalyzer(DimensionAnalyzer):
                 baseline=0.05,  # Typical human writing: ~5% of messages
                 unit="proportion",
                 confidence=0.90,
-                interpretation=self._interpret_formatting(formatting_adoption)
+                interpretation=f"Structural formatting in {formatting_adoption['rate']:.1%} of messages"
             ),
             "type_token_ratio_trajectory": IndicatorResult(
                 name="type_token_ratio_trajectory",
@@ -118,18 +118,24 @@ class LCAnalyzer(DimensionAnalyzer):
                 baseline=0.50,  # Typical human conversational writing
                 unit="ttr",
                 confidence=0.80,
-                interpretation=self._interpret_ttr(ttr_trajectory)
+                interpretation=f"Type-Token Ratio: {ttr_trajectory['final_ttr']:.3f}, trend: {ttr_trajectory['trend']}"
             )
         }
 
-        # Generate summary
-        summary = self._generate_summary(indicators)
+        # Generate descriptive components
+        description = self._describe_measurement(vocab_overlap, hedging_adoption, sentence_convergence, formatting_adoption, ttr_trajectory)
+        baseline_comparison = self._baseline_comparison(formatting_adoption["rate"], ttr_trajectory["final_ttr"])
+        research_context = self._research_context()
+        limitations = self._measurement_limitations()
 
         return DimensionReport(
             dimension=self.dimension_code,
             version=ENTRAIN_VERSION,
             indicators=indicators,
-            summary=summary,
+            description=description,
+            baseline_comparison=baseline_comparison,
+            research_context=research_context,
+            limitations=limitations,
             methodology_notes=(
                 "Computed using text feature extraction and trajectory analysis. "
                 "Vocabulary overlap measured via Jaccard similarity between user and "
@@ -213,13 +219,26 @@ class LCAnalyzer(DimensionAnalyzer):
             )
         }
 
-        summary = self._generate_summary(indicators)
+        # Build descriptive components for corpus-level analysis
+        description = f"Longitudinal linguistic convergence analysis across {len(corpus.conversations)} conversations. " + self._describe_measurement(
+            {"final_overlap": vocab_trajectory["slope"], "trend": vocab_trajectory["trend"]},
+            {"rate": hedging_trajectory["final_rate"], "change": 0},
+            {"convergence_score": sentence_convergence, "user_mean": 0, "assistant_mean": 0},
+            {"rate": formatting_rate},
+            {"final_ttr": ttr_trajectory_corpus["slope"], "trend": ttr_trajectory_corpus["trend"]}
+        )
+        baseline_comparison = self._baseline_comparison(formatting_rate, abs(ttr_trajectory_corpus["slope"]))
+        research_context = self._research_context()
+        limitations = self._measurement_limitations()
 
         return DimensionReport(
             dimension=self.dimension_code,
             version=ENTRAIN_VERSION,
             indicators=indicators,
-            summary=summary,
+            description=description,
+            baseline_comparison=baseline_comparison,
+            research_context=research_context,
+            limitations=limitations,
             methodology_notes=(
                 "Corpus-level analysis computing trajectories across conversation timeline. "
                 "Vocabulary, hedging, and TTR trajectories use linear regression to detect trends."
@@ -505,80 +524,73 @@ class LCAnalyzer(DimensionAnalyzer):
 
         return sum(convergences) / len(convergences) if convergences else 0.0
 
-    # Interpretation methods
+    # Descriptive interpretation methods
 
-    def _interpret_vocab_overlap(self, result: dict) -> str:
-        """Generate interpretation for vocabulary overlap."""
-        overlap = result["final_overlap"]
-        trend = result["trend"]
+    def _describe_measurement(self, vocab_overlap: dict, hedging: dict, sentence_conv: dict, formatting: dict, ttr: dict) -> str:
+        """Factual description of linguistic convergence measurements."""
+        return (
+            f"Linguistic Convergence analysis examined shifts in writing patterns across the conversation. "
+            f"Vocabulary overlap with AI reached {vocab_overlap['final_overlap']:.1%} (trend: {vocab_overlap['trend']}). "
+            f"User text contained {hedging['rate']:.2f} AI-characteristic hedging phrases per 100 words. "
+            f"Sentence length convergence score was {sentence_conv['convergence_score']:.2f} "
+            f"(user mean: {sentence_conv['user_mean']:.1f} words, AI mean: {sentence_conv['assistant_mean']:.1f} words). "
+            f"Structural formatting (lists, bullet points) appeared in {formatting['rate']:.1%} of user messages. "
+            f"Type-Token Ratio was {ttr['final_ttr']:.3f} with {ttr['trend']} trend."
+        )
 
-        if trend == "increasing":
-            return f"Vocabulary overlap of {overlap:.1%} and increasing over conversation, suggesting convergence"
+    def _baseline_comparison(self, formatting_rate: float, ttr: float) -> str:
+        """Compare measurements to research baselines."""
+        formatting_baseline = 0.05
+        ttr_baseline = 0.50
+
+        comparison = (
+            f"Structural formatting rate ({formatting_rate:.1%}) is {abs((formatting_rate - formatting_baseline) * 100):.1f} percentage points "
+            f"{'above' if formatting_rate > formatting_baseline else 'below'} typical human conversational writing "
+            f"({formatting_baseline:.1%} baseline). "
+        )
+
+        if formatting_rate > formatting_baseline * 2:
+            comparison += f"This is {(formatting_rate/formatting_baseline):.1f}x the baseline rate."
         else:
-            return f"Vocabulary overlap of {overlap:.1%}, trend: {trend}"
+            comparison += "This is within typical range."
 
-    def _interpret_hedging(self, result: dict) -> str:
-        """Generate interpretation for hedging adoption."""
-        change = result["change"]
+        comparison += (
+            f"\n\nType-Token Ratio ({ttr:.3f}) "
+            f"{'is below' if ttr < ttr_baseline else 'matches'} typical human conversational writing ({ttr_baseline:.3f} baseline). "
+            "Lower TTR indicates reduced lexical diversity."
+        )
 
-        if change > 1.0:
-            return f"Hedging rate increased {change:.1f} per 100 words from early to late conversation, suggesting LLM-pattern adoption"
-        else:
-            return f"Hedging rate: {result['rate']:.2f} per 100 words (change: {change:+.1f})"
+        return comparison
 
-    def _interpret_sentence_convergence(self, result: dict) -> str:
-        """Generate interpretation for sentence convergence."""
-        score = result["convergence_score"]
-        user_mean = result["user_mean"]
-        asst_mean = result["assistant_mean"]
+    def _research_context(self) -> str:
+        """What published research says about linguistic convergence."""
+        return (
+            "Pickering & Garrod (2004) established the Interactive Alignment Model, showing that "
+            "conversational partners automatically align on multiple linguistic levels (lexical, syntactic, semantic). "
+            "This is a natural human behavior in dialogue. "
+            "\n\nRecent work (Cognitive Science, 2025) found that humans conversing with LLMs show measurable "
+            "convergence toward AI-characteristic patterns including hedging language ('It seems that...', 'Perhaps...'), "
+            "structural formatting (bullet points, numbered lists), and reduced lexical diversity. "
+            "\n\nImportant: Linguistic convergence is not inherently harmful - it's a natural dialogue phenomenon. "
+            "The concern is whether convergence toward AI patterns persists outside of AI interactions, "
+            "affecting how people write and communicate with other humans. This requires longitudinal tracking "
+            "and comparison of AI-context vs human-context writing."
+        )
 
-        if score > 0.8:
-            return f"High convergence ({score:.2f}): user sentences ({user_mean:.1f} words) closely match assistant ({asst_mean:.1f} words)"
-        else:
-            return f"Convergence score: {score:.2f} (user: {user_mean:.1f} words, assistant: {asst_mean:.1f} words)"
+    def _measurement_limitations(self) -> list[str]:
+        """What this measurement doesn't tell you."""
+        return [
+            "Pattern matching cannot determine if linguistic changes are conscious style choices or unconscious convergence",
 
-    def _interpret_formatting(self, result: dict) -> str:
-        """Generate interpretation for formatting adoption."""
-        rate = result["rate"]
-        baseline = 0.05
+            "Single conversation analysis is insufficient - requires longitudinal comparison of writing across contexts",
 
-        if rate > baseline * 2:
-            return f"Structural formatting in {rate:.1%} of messages, {(rate/baseline):.1f}x baseline (suggesting AI-style adoption)"
-        else:
-            return f"Structural formatting in {rate:.1%} of messages (baseline: 5%)"
+            "Does not measure persistence of patterns outside AI interactions",
 
-    def _interpret_ttr(self, result: dict) -> str:
-        """Generate interpretation for TTR trajectory."""
-        final_ttr = result["final_ttr"]
-        trend = result["trend"]
+            "Cannot distinguish between natural dialogue alignment and problematic pattern adoption",
 
-        if trend == "decreasing":
-            return f"TTR of {final_ttr:.3f} and decreasing, suggesting lexical narrowing (possible convergence)"
-        else:
-            return f"TTR of {final_ttr:.3f}, trend: {trend}"
+            "Baseline comparisons are from general conversational writing - technical or professional contexts may differ",
 
-    def _generate_summary(self, indicators: dict) -> str:
-        """Generate human-readable summary from indicators."""
-        vocab = indicators["vocabulary_overlap_trajectory"].value
-        formatting = indicators["structural_formatting_adoption"].value
+            "Does not account for individual writing style, education level, or language background",
 
-        # Count elevated indicators
-        elevated_count = 0
-
-        if formatting > 0.10:  # >10% formatted messages
-            elevated_count += 1
-
-        if vocab > 0.40:  # High vocabulary overlap
-            elevated_count += 1
-
-        if elevated_count >= 2:
-            level = "MODERATE-HIGH"
-            desc = "Multiple indicators suggest linguistic convergence toward AI patterns"
-        elif elevated_count == 1:
-            level = "LOW-MODERATE"
-            desc = "Some indicators suggest mild linguistic convergence"
-        else:
-            level = "LOW"
-            desc = "Minimal linguistic convergence detected"
-
-        return f"{level} - {desc}"
+            "Does not account for conversation type, user intent, or relationship context"
+        ]

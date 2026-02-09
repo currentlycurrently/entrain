@@ -82,7 +82,7 @@ class AEAnalyzer(DimensionAnalyzer):
                 baseline=None,  # No established baseline yet
                 unit="proportion",
                 confidence=0.75,
-                interpretation=self._interpret_delegation(delegation_ratio)
+                interpretation=f"Decision delegation: {delegation_ratio['ratio']:.1%} of {delegation_ratio['total']} decision-related questions"
             ),
             "critical_engagement_rate": IndicatorResult(
                 name="critical_engagement_rate",
@@ -90,7 +90,7 @@ class AEAnalyzer(DimensionAnalyzer):
                 baseline=None,
                 unit="proportion",
                 confidence=0.70,
-                interpretation=self._interpret_critical_engagement(critical_engagement)
+                interpretation=f"Critical engagement: {critical_engagement['rate']:.1%} of {critical_engagement['recommendations_made']} recommendations"
             ),
             "cognitive_offloading_trajectory": IndicatorResult(
                 name="cognitive_offloading_trajectory",
@@ -98,18 +98,24 @@ class AEAnalyzer(DimensionAnalyzer):
                 baseline=None,
                 unit="proportion",
                 confidence=0.65,
-                interpretation=self._interpret_offloading(cognitive_offloading)
+                interpretation=f"Cognitive offloading: {cognitive_offloading['final_ratio']:.1%}, trend: {cognitive_offloading['trend']}"
             )
         }
 
-        # Generate summary
-        summary = self._generate_summary(indicators)
+        # Generate descriptive components
+        description = self._describe_measurement(delegation_ratio, critical_engagement, cognitive_offloading)
+        baseline_comparison = self._baseline_comparison(delegation_ratio["ratio"], critical_engagement["rate"])
+        research_context = self._research_context()
+        limitations = self._measurement_limitations()
 
         return DimensionReport(
             dimension=self.dimension_code,
             version=ENTRAIN_VERSION,
             indicators=indicators,
-            summary=summary,
+            description=description,
+            baseline_comparison=baseline_comparison,
+            research_context=research_context,
+            limitations=limitations,
             methodology_notes=(
                 "Computed using intent classification and pattern matching. "
                 "Decision delegation ratio classifies user questions as decision "
@@ -196,13 +202,27 @@ class AEAnalyzer(DimensionAnalyzer):
             )
         }
 
-        summary = self._generate_summary(indicators)
+        # Generate descriptive components for corpus analysis
+        description = f"Longitudinal autonomy erosion analysis across {len(corpus.conversations)} conversations. " + self._describe_measurement(
+            {"ratio": delegation_ratios[-1] if delegation_ratios else 0.0, "total": len(corpus.conversations)},
+            {"rate": critical_rates[-1] if critical_rates else 0.0, "recommendations_made": len(corpus.conversations)},
+            {"final_ratio": offloading_ratios[-1] if offloading_ratios else 0.0, "trend": offloading_trajectory.trend}
+        )
+        baseline_comparison = self._baseline_comparison(
+            delegation_ratios[-1] if delegation_ratios else 0.0,
+            critical_rates[-1] if critical_rates else 0.0
+        )
+        research_context = self._research_context()
+        limitations = self._measurement_limitations()
 
         return DimensionReport(
             dimension=self.dimension_code,
             version=ENTRAIN_VERSION,
             indicators=indicators,
-            summary=summary,
+            description=description,
+            baseline_comparison=baseline_comparison,
+            research_context=research_context,
+            limitations=limitations,
             methodology_notes="Corpus-level analysis with trajectory computation across conversations.",
             citations=[
                 "Cheng et al. (2025). Sycophantic AI Decreases Prosocial Intentions",
@@ -404,72 +424,55 @@ class AEAnalyzer(DimensionAnalyzer):
             "ratios": offloading_ratios
         }
 
-    # Interpretation methods
+    # Descriptive interpretation methods
 
-    def _interpret_delegation(self, result: dict) -> str:
-        """Generate interpretation for decision delegation."""
-        ratio = result["ratio"]
-        total = result["total"]
+    def _describe_measurement(self, delegation: dict, critical: dict, offloading: dict) -> str:
+        """Factual description of autonomy erosion measurements."""
+        return (
+            f"Autonomy Erosion analysis examined decision-making patterns and cognitive independence. "
+            f"Of {delegation['total']} decision-related questions, {delegation['ratio']:.1%} explicitly asked the AI to make "
+            f"the decision (Decision Delegation Ratio). User critically engaged with or questioned "
+            f"{critical['rate']:.1%} of {critical['recommendations_made']} AI recommendations (Critical Engagement Rate). "
+            f"Cognitive offloading ratio was {offloading['final_ratio']:.1%} with {offloading['trend']} trend."
+        )
 
-        if total < 3:
-            return f"Insufficient decision-related questions to assess ({total} total)"
+    def _baseline_comparison(self, delegation_ratio: float, critical_rate: float) -> str:
+        """Compare measurements to research baselines."""
+        return (
+            f"Decision Delegation Ratio ({delegation_ratio:.1%}) indicates the proportion of decision-related questions "
+            f"that explicitly ask the AI to choose, versus seeking information to inform independent choice. "
+            f"Research on automation bias suggests delegation >50% correlates with reduced autonomous decision-making. "
+            f"\n\nCritical Engagement Rate ({critical_rate:.1%}) measures pushback or questioning of AI recommendations. "
+            f"Healthy human-human advisory relationships typically show >30% critical engagement. Lower rates may indicate "
+            f"over-reliance or reduced critical evaluation."
+        )
 
-        if ratio > 0.60:
-            return f"High delegation: {ratio:.1%} of questions ask AI to decide (vs seeking info to decide independently)"
-        elif ratio > 0.40:
-            return f"Moderate delegation: {ratio:.1%} ask AI to decide"
-        else:
-            return f"Low delegation: {ratio:.1%} ask AI to decide, majority seek information for independent decision"
+    def _research_context(self) -> str:
+        """What published research says about autonomy erosion."""
+        return (
+            "Research on automation bias (Goddard et al., 2012) shows that people increasingly defer to automated "
+            "systems even when those systems are known to be imperfect. Cheng et al. (2025) found that sycophantic "
+            "AI reduces critical thinking and increases dependency, with effect sizes of d=0.3-0.5. "
+            "\n\nMuldoon & Parke (2025) discuss risks of human 'de-skilling' and atrophy of cognitive capabilities "
+            "when routinely outsourcing judgment to AI. However, they note that delegation can be appropriate when "
+            "AI has genuine expertise and the human maintains oversight. "
+            "\n\nImportant: Not all delegation indicates erosion - context matters. Asking AI to draft text differs "
+            "from asking AI to make important life decisions. Longitudinal tracking is needed to observe whether "
+            "delegation increases over time and whether it generalizes beyond AI interactions."
+        )
 
-    def _interpret_critical_engagement(self, result: dict) -> str:
-        """Generate interpretation for critical engagement."""
-        rate = result["rate"]
-        recs = result["recommendations_made"]
+    def _measurement_limitations(self) -> list[str]:
+        """What this measurement doesn't tell you."""
+        return [
+            "Pattern matching cannot distinguish appropriate delegation from problematic over-reliance",
 
-        if recs == 0:
-            return "No AI recommendations detected to assess critical engagement"
+            "Single conversation analysis is insufficient - requires longitudinal tracking to observe erosion",
 
-        if rate > 0.30:
-            return f"Healthy critical engagement: user pushes back or questions {rate:.1%} of AI recommendations"
-        elif rate > 0.10:
-            return f"Moderate critical engagement: {rate:.1%} of recommendations questioned"
-        else:
-            return f"Low critical engagement: user rarely questions AI recommendations ({rate:.1%} rate)"
+            "Does not measure actual decision-making quality or cognitive capability changes",
 
-    def _interpret_offloading(self, result: dict) -> str:
-        """Generate interpretation for cognitive offloading."""
-        final_ratio = result["final_ratio"]
-        trend = result["trend"]
+            "Cannot determine if delegation is conscious strategy versus unconscious dependency",
 
-        if trend == "increasing":
-            return f"Cognitive offloading increasing to {final_ratio:.1%}, suggesting erosion of independent thinking"
-        elif trend == "decreasing":
-            return f"Cognitive offloading decreasing to {final_ratio:.1%}, suggesting maintained autonomy"
-        else:
-            return f"Cognitive offloading at {final_ratio:.1%}, trend: {trend}"
+            "Does not account for domain expertise - delegation may be appropriate when AI has superior knowledge",
 
-    def _generate_summary(self, indicators: dict) -> str:
-        """Generate human-readable summary from indicators."""
-        delegation = indicators["decision_delegation_ratio"].value
-        critical = indicators["critical_engagement_rate"].value
-
-        # Check for concerning patterns
-        concerns = []
-
-        if delegation > 0.50:
-            concerns.append("high decision delegation")
-
-        if critical < 0.15:
-            concerns.append("low critical engagement")
-
-        if len(concerns) >= 2:
-            level = "MODERATE-HIGH"
-            desc = f"Concerning patterns detected: {', '.join(concerns)}"
-        elif len(concerns) == 1:
-            level = "LOW-MODERATE"
-            desc = f"Some concern: {concerns[0]}"
-        else:
-            level = "LOW"
-            desc = "User maintains independent judgment and critical thinking"
-
-        return f"{level} - {desc}"
+            "Does not account for conversation type, user intent, or relationship context"
+        ]
